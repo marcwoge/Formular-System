@@ -45,8 +45,3 @@
     </table>
 </form>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        var autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'));
-    });
-</script>

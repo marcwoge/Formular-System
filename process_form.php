@@ -1,7 +1,7 @@
 <?php
 mb_internal_encoding('UTF-8');
 
-// Laden der Mailserver-Konfiguration
+// Laden der Mailserver- und Server-Konfiguration
 $mailConfig = require __DIR__ . '/config/mailconfig.php';
 
 use PHPMailer\PHPMailer\PHPMailer;
@@ -21,7 +21,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fileUrl = '';
 
     if (!empty($_FILES['file']['name'])) {
-        $uploadFile = $uploadDir . basename($_FILES['file']['name']);
+        // Ursprünglichen Dateinamen bereinigen und Dateiendung extrahieren
+        $originalFilename = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME);
+        $fileExtension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
+        $cleanFilename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalFilename); // Sonderzeichen durch _ ersetzen
+        $timestamp = date('YmdHis'); // Zeitstempel im Format YYYYMMDDHHMMSS
+
+        // Neuen Dateinamen mit Endung generieren
+        $uploadFile = $uploadDir . $timestamp . '_' . $cleanFilename . '.' . $fileExtension;
+
         if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadFile)) {
             $fileUrl = 'http://' . $_SERVER['HTTP_HOST'] . '/' . $uploadFile;
         } else {
@@ -42,11 +50,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     var_dump($postData);
     echo '</pre>';
 
+
     // Standardwerte für E-Mail-Konfiguration
-    $defaultSubject = 'Neue Formularübermittlung';
-    $defaultRecipients = ['marc.woge@ntc-gmbh.com'];
-    $defaultPreText = "Hallo,\nvielen Dank für Ihre Nachricht.\nFolgende Daten wurden in unserem System gespeichert:\n\n";
-    $defaultPostText = "\n\nMit freundlichen Grüßen\nIhr Team";
+    $defaultSubject = $mailConfig['defaultSubject'];
+    $defaultRecipients = $mailConfig['defaultRecipients'];
+    $defaultPreText = $mailConfig['defaultPreText'];
+    $defaultPostText = $mailConfig['defaultPostText'];
 
     // E-Mail Details aus den POST-Daten oder Standardwerte verwenden
     $emailSubject = isset($postData['email_subject']) ? $postData['email_subject'] : $defaultSubject;
@@ -107,8 +116,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         echo "E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}";
     }
 
-    // Server URL, an den die Daten gesendet werden (falls benötigt)
-    $url = 'http://192.168.1.53:8080/test';
+    // Server URL aus der Konfiguration
+    $url = $mailConfig['server_url'];
 
     // cURL initialisieren
     $ch = curl_init($url);
@@ -126,3 +135,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     echo "Ungültige Anforderung.";
 }
+?>

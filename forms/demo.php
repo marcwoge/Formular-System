@@ -1,6 +1,15 @@
 <form action="process_form.php" method="POST" class="validated-form">
     <h2>Demo-Formular: Alle HTML5-Formularoptionen</h2>
-    
+    <input type="hidden" name="form_title" value="Formular 2">
+    <!-- E-Mail Empfänger und Texte -->
+        <input type="hidden" name="email_subject" value="Neue Formularübermittlung">
+        <!--
+        <input type="hidden" name="email_recipients" value="email@example.com, email2@example.com">
+        -->
+        <input type="hidden" name="email_pretext" value="Hallo,<br>nvielen Dank für Ihre Registrierung.<br>Folgende Daten wurden in unserem System gespeichert:<p>">
+        <input type="hidden" name="email_posttext" value="</p> <br>Wir wünschen Ihnen einen tollen Aufenthalt.<br>Mit freundlichen Grüßen<br> Türsteher.">
+
+    <!-- Hier beginnt das Formular -->    
     <!-- Text -->
     <label for="text">Text:</label>
     <input type="text" id="text" name="text">
@@ -20,7 +29,7 @@
     <label for="address">Adresse:</label>
     <input type="text" id="address" name="address" required>
     <br>
-    
+
     <!-- Bild -->
     <img src="/img/NTC_eShelter_59.jpg" alt="Beschreibung" class="img-responsive">
     <br>

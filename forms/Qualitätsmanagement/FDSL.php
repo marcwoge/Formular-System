@@ -2,7 +2,6 @@
     <input type="hidden" name="form_title" value="Formular 2">
     <!-- E-Mail Empfänger und Texte -->
         <input type="hidden" name="email_subject" value="Neue Formularübermittlung">
-        <input type="hidden" name="email_recipients" value="marc.woge@ntc-gmbh.com">
         <input type="hidden" name="email_pretext" value="Hallo,\nvielen Dank für Ihre Registrierung.\nFolgende Daten wurden in unserem System gespeichert:\n\n">
         <input type="hidden" name="email_posttext" value="\n\nWir wünschen Ihnen einen tollen Aufenthalt.\nMit freundlichen Grüßen\nNotstromtechnik-Clasen Türsteher.">
 

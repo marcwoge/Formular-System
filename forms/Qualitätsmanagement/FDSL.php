@@ -4,6 +4,8 @@
         <input type="hidden" name="email_subject" value="Neue Formularübermittlung">
         <input type="hidden" name="email_pretext" value="Hallo,\nvielen Dank für Ihre Registrierung.\nFolgende Daten wurden in unserem System gespeichert:\n\n">
         <input type="hidden" name="email_posttext" value="\n\nWir wünschen Ihnen einen tollen Aufenthalt.\nMit freundlichen Grüßen\nNotstromtechnik-Clasen Türsteher.">
+    <!-- Versteckte Felder für Dateien -->
+    <input type="hidden" name="file_attachments[]" value="Agenda_Innovationday_AHR.pdf">
 
     <label for="username">Benutzername:</label>
     <input type="text" id="username" name="username" required>

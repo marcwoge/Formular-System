@@ -50,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     var_dump($postData);
     echo '</pre>';
 
-
     // Standardwerte für E-Mail-Konfiguration
     $defaultSubject = $mailConfig['defaultSubject'];
     $defaultRecipients = $mailConfig['defaultRecipients'];
@@ -97,6 +96,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->addAddress(trim($recipient));
         }
 
+        // Dateien aus dem /files/ Ordner hinzufügen, falls angegeben
+        if (isset($postData['file_attachments']) && is_array($postData['file_attachments'])) {
+            foreach ($postData['file_attachments'] as $file) {
+                $filePath = __DIR__ . '/files/' . basename($file);
+                if (file_exists($filePath)) {
+                    $mail->addAttachment($filePath);
+                }
+            }
+        }
+
         $mail->isHTML(true);
         $mail->Subject = $emailSubject;
         $mail->Body = nl2br($emailBody);
@@ -135,4 +144,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     echo "Ungültige Anforderung.";
 }
-?>

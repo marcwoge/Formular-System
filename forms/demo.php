@@ -9,6 +9,10 @@
         <input type="hidden" name="email_pretext" value="Hallo,<br>nvielen Dank für Ihre Registrierung.<br>Folgende Daten wurden in unserem System gespeichert:<p>">
         <input type="hidden" name="email_posttext" value="</p> <br>Wir wünschen Ihnen einen tollen Aufenthalt.<br>Mit freundlichen Grüßen<br> Türsteher.">
 
+     <!-- Versteckte Felder für Dateien -->
+    <input type="hidden" name="file_attachments[]" value="datei1.pdf">
+    <input type="hidden" name="file_attachments[]" value="datei2.jpg">
+
     <!-- Hier beginnt das Formular -->    
     <!-- Text -->
     <label for="text">Text:</label>

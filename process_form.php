@@ -12,6 +12,8 @@ require 'include/PHPMailer/src/PHPMailer.php';
 require 'include/PHPMailer/src/SMTP.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $timestamp = date('YmdHis'); // Zeitstempel im Format YYYYMMDDHHMMSS
+
     // Verzeichnis für den Dateiupload prüfen und erstellen
     $uploadDir = 'uploads/';
     if (!is_dir($uploadDir)) {
@@ -25,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $originalFilename = pathinfo($_FILES['file']['name'], PATHINFO_FILENAME);
         $fileExtension = pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION);
         $cleanFilename = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalFilename); // Sonderzeichen durch _ ersetzen
-        $timestamp = date('YmdHis'); // Zeitstempel im Format YYYYMMDDHHMMSS
 
         // Neuen Dateinamen mit Endung generieren
         $uploadFile = $uploadDir . $timestamp . '_' . $cleanFilename . '.' . $fileExtension;
@@ -33,7 +34,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadFile)) {
             $fileUrl = 'http://' . $_SERVER['HTTP_HOST'] . '/' . $uploadFile;
         } else {
-            echo "Datei konnte nicht hochgeladen werden.";
+            die("Datei konnte nicht hochgeladen werden.");
         }
     }
 
@@ -45,10 +46,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $postData['file_link'] = $fileUrl;
     }
 
-    // Debugging-Ausgabe des POST-Arrays
-    echo "<pre>";
-    var_dump($postData);
-    echo '</pre>';
+    // Formularabsendung als JSON-Datei speichern
+    $saveDir = 'form_submissions/';
+    if (!is_dir($saveDir)) {
+        mkdir($saveDir, 0777, true);
+    }
+    $filename = $saveDir . $timestamp . '_form_submission.json';
+    file_put_contents($filename, json_encode($postData, JSON_PRETTY_PRINT));
 
     // Standardwerte für E-Mail-Konfiguration
     $defaultSubject = $mailConfig['defaultSubject'];
@@ -64,8 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userEmail = isset($postData['email']) ? $postData['email'] : '';
 
     // E-Mail Text zusammenstellen
-    $emailBody = $emailPreText;
-
+    $emailBody = "<p>$emailPreText</p><table border='1' cellpadding='5' cellspacing='0'>";
+    
     // Definiere die Namen der versteckten Felder, die nicht in die E-Mail aufgenommen werden sollen
     $hiddenFields = ['file_attachments', 'email_subject', 'email_recipients', 'email_pretext', 'email_posttext'];
 
@@ -74,11 +78,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if (is_array($value)) {
                 $value = implode(', ', $value); // Array zu String konvertieren für E-Mail
             }
-            $emailBody .= "$key: $value\n";
+            $emailBody .= "<tr><th>$key</th><td>$value</td></tr>";
         }
     }
-
-    $emailBody .= $emailPostText;
+    
+    $emailBody .= "</table><p>$emailPostText</p>";
 
     // PHPMailer initialisieren
     $mail = new PHPMailer(true);
@@ -115,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         $mail->isHTML(true);
         $mail->Subject = $emailSubject;
-        $mail->Body = nl2br($emailBody);
+        $mail->Body = $emailBody;
 
         // Erste E-Mail senden
         $mail->send();
@@ -127,7 +131,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->send();
         }
 
-        echo 'E-Mails wurden gesendet.';
+        //echo "E-Mails wurden gesendet.";
+
     } catch (Exception $e) {
         echo "E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}";
     }
@@ -147,8 +152,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     curl_close($ch);
 
     // Antwort an den Benutzer
-    echo "Formulardaten wurden übermittelt.";
+    //echo "Formulardaten wurden übermittelt.";
+    exit('success');
+
 } else {
-    echo "Ungültige Anforderung.";
+    //echo "Ungültige Anforderung.";
 }
 ?>

@@ -65,12 +65,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // E-Mail Text zusammenstellen
     $emailBody = $emailPreText;
+
+    // Definiere die Namen der versteckten Felder, die nicht in die E-Mail aufgenommen werden sollen
+    $hiddenFields = ['file_attachments', 'email_subject', 'email_recipients', 'email_pretext', 'email_posttext'];
+
     foreach ($postData as $key => $value) {
-        if (is_array($value)) {
-            $value = implode(', ', $value); // Array zu String konvertieren für E-Mail
+        if (!in_array($key, $hiddenFields)) {
+            if (is_array($value)) {
+                $value = implode(', ', $value); // Array zu String konvertieren für E-Mail
+            }
+            $emailBody .= "$key: $value\n";
         }
-        $emailBody .= "$key: $value\n";
     }
+
     $emailBody .= $emailPostText;
 
     // PHPMailer initialisieren
@@ -144,3 +151,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 } else {
     echo "Ungültige Anforderung.";
 }
+?>

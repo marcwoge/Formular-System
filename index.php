@@ -130,7 +130,7 @@ if (empty($navType) && !isset($_GET['page'])) {
                 echo "<pre>Page not found: $page</pre>";
             }
         } else {
-            include('forms/form1.php');
+            include('forms/start.php');
         }
         ?>
     </main>

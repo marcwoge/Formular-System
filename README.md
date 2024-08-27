@@ -1,5 +1,5 @@
 # Formular-System
- PHP and HTML Formular-tool with JSon an Email
+ PHP and HTML Formular-tool with JSON an Email
 
 # Usage
 edit the following files: 

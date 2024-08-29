@@ -45,37 +45,36 @@ if (empty($navType) && !isset($_GET['page'])) {
     <script src="form-options.js" defer></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const forms = document.querySelectorAll('.validated-form');
+        const forms = document.querySelectorAll('.validated-form');
 
-    forms.forEach(form => {
-        form.addEventListener('submit', function (event) {
-            event.preventDefault();
+        forms.forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
 
-            // Erstelle FormData-Objekt direkt aus dem Formular
-            const formData = new FormData(form);
+                // Erstelle FormData-Objekt direkt aus dem Formular
+                const formData = new FormData(form);
 
-            fetch('process_form.php', {
-                method: 'POST',
-                body: formData // Sende das FormData-Objekt direkt, damit Dateien korrekt übertragen werden
-            })
-            .then(response => response.text())
-            .then(data => {
-                console.log('Server Response:', data);  // Füge diese Zeile hinzu
-                if (data === 'success') {
-                    alert('Die Daten wurden erfolgreich übertragen.');
-                    window.location.href = window.location.pathname + window.location.search; // Seite neu laden
-                } else {
-                    alert('Ein Fehler ist aufgetreten: ' + data);
-                }
-            })
-
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Ein Fehler ist aufgetreten: ' + error);
+                fetch('process_form.php', {
+                    method: 'POST',
+                    body: formData // Sende das FormData-Objekt direkt, damit Dateien korrekt übertragen werden
+                })
+                .then(response => response.text())
+                .then(data => {
+                    console.log('Server Response:', data);  // Füge diese Zeile hinzu
+                    if (data.trim() === 'success') {  // Überprüfe auf den exakten Erfolgstext
+                        alert('Die Daten wurden erfolgreich übertragen.');
+                        window.location.href = window.location.pathname + window.location.search; // Seite neu laden
+                    } else {
+                        alert('Ein Fehler ist aufgetreten: ' + data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ein Fehler ist aufgetreten: ' + error);
+                });
             });
         });
     });
-});
     </script>
 </head>
 <body>
@@ -146,9 +145,11 @@ if (empty($navType) && !isset($_GET['page'])) {
             window.parent.postMessage({ type: 'resizeIframe', height: height }, '*');
         }
 
-        window.onload = sendHeight;
-        window.onresize = sendHeight;
+        // Nur ausführen, wenn das Formular innerhalb eines iFrames geladen wird
+        if (window !== window.parent) {
+            window.onload = sendHeight;
+            window.onresize = sendHeight;
+        }
     </script>
-
 </body>
 </html>

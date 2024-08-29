@@ -140,5 +140,15 @@ if (empty($navType) && !isset($_GET['page'])) {
         <p id="disclaimer"><?= $texts['disclaimer']; ?></p>
     </footer>
     <?php endif; ?>
+    <script>
+        function sendHeight() {
+            var height = document.body.scrollHeight;
+            window.parent.postMessage({ type: 'resizeIframe', height: height }, '*');
+        }
+
+        window.onload = sendHeight;
+        window.onresize = sendHeight;
+    </script>
+
 </body>
 </html>

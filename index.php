@@ -121,7 +121,7 @@ if (empty($navType) && !isset($_GET['page'])) {
         if (isset($_GET['page'])) {
             $page = sanitizePageParameter($_GET['page']);
             $page = 'forms/' . ltrim($page, '/');
-            echo "<pre>Requested page: $page</pre>";
+            //echo "<pre>Requested page: $page</pre>";
             if (file_exists($page) && pathinfo($page, PATHINFO_EXTENSION) === 'php') {
                 include($page);
             } else {
@@ -143,7 +143,6 @@ if (empty($navType) && !isset($_GET['page'])) {
     document.addEventListener('DOMContentLoaded', function () {
         function sendHeight() {
             var height = document.body.scrollHeight;
-            console.log("Sending height:", height);  // Debugging line
             window.parent.postMessage({ type: 'resizeIframe', height: height }, '*');
         }
 

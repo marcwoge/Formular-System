@@ -85,6 +85,12 @@ You can customize the look and feel of the forms and the system by editing the C
 - JavaScript: `menu.js`, `multi-step.js`, `validation.js`
 
 ## Usage
+All forms are stored in the folderr `forms/` you can create new by adding a file xyzform.php. This file only needs the html of the form, all other html stuff is put together automatically. 
+```
+<form action="process_form.php" method="POST" class="validated-form">
+    your Form here
+</form>
+```
 ### File `forms/start.php`
 The file `forms/start.php` contains the welcome page alias Startpage when you visit the index.php without any parameters.
 ### Form Directory Structure

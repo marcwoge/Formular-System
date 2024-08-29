@@ -140,16 +140,17 @@ if (empty($navType) && !isset($_GET['page'])) {
     </footer>
     <?php endif; ?>
     <script>
+    document.addEventListener('DOMContentLoaded', function () {
         function sendHeight() {
             var height = document.body.scrollHeight;
+            console.log("Sending height:", height);  // Debugging line
             window.parent.postMessage({ type: 'resizeIframe', height: height }, '*');
         }
 
-        // Nur ausführen, wenn das Formular innerhalb eines iFrames geladen wird
-        if (window !== window.parent) {
-            window.onload = sendHeight;
-            window.onresize = sendHeight;
-        }
-    </script>
+        window.onload = sendHeight;
+        window.onresize = sendHeight;
+    });
+</script>
+
 </body>
 </html>

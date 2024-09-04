@@ -176,6 +176,55 @@ input[type="range"]::-moz-range-thumb {
     border: 2px solid #003057;
 }
 
+/* Style the input field with datalist */
+input[list] {
+    width: 96%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #003057; /* Customize the border color */
+    border-radius: 5px;
+    background-color: #f9f9f9; /* Customize the background color */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1); /* Optional shadow */
+    margin-bottom: 15px;
+}
+
+/* Style the placeholder text */
+input[list]::placeholder {
+    color: #999; /* Customize the placeholder text color */
+    font-style: italic;
+}
+
+/* Style the datalist dropdown options */
+datalist option {
+    font-size: 16px;
+    padding: 5px;
+    background-color: #fff; /* Customize the background color */
+    color: #003057; /* Customize the font color */
+    border: none; /* Remove border for the dropdown */
+}
+
+/* Option hover effect */
+datalist option:hover {
+    background-color: #f1f1f1; /* Customize the hover effect */
+    color: #e40038;
+}
+
+/* Input field focus state */
+input[list]:focus {
+    outline: none;
+    border-color: #004488; /* Customize focus border color */
+    background-color: #eef4fa; /* Customize background on focus */
+}
+
+/* Optional: Add custom styling for mobile devices */
+@media (max-width: 768px) {
+    input[list] {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+/* Textarea */
 textarea {
     resize: vertical;
 }

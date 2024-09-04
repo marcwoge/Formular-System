@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $uploadFile = $uploadDir . $timestamp . '_' . $cleanFilename . '.' . $fileExtension;
 
         if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadFile)) {
-            $fileUrl = 'http://' . $_SERVER['HTTP_HOST'] . '/' . $uploadFile;
+            $fileUrl = 'http://' . $_SERVER['HTTP_HOST'] . '/forms/' . $uploadFile;
         } else {
             die("Datei konnte nicht hochgeladen werden.");
         }

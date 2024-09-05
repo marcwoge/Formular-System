@@ -35,7 +35,7 @@
     <br>
 
     <!-- Bild -->
-    <img src="/img/NTC_eShelter_59.jpg" alt="Beschreibung" class="img-responsive">
+    <img src="/forms/img/NTC_eShelter_59.jpg" alt="Beschreibung" class="img-responsive">
     <br>
 
     <!-- Number -->
@@ -50,7 +50,7 @@
 
     <!-- Video -->
     <video controls class="video-responsive">
-        <source src="/img/NTC_-_Animation_2023.mp4" type="video/mp4">
+        <source src="/forms/img/NTC_-_Animation_2023.mp4" type="video/mp4">
         Your browser does not support the video tag.
     </video>
     <br>

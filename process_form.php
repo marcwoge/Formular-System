@@ -46,6 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $postData['file_link'] = $fileUrl;
     }
 
+    // Formdatetime (aktuelles Datum und Zeit inkl. Millisekunden) erstellen
+    $formDateTime = round(microtime(true) * 1000);  // Millisekunden-Timestamp
+    $postData['formdatetime'] = $formDateTime;  // Dies wird nur per cURL übertragen
+
     // Formularabsendung als JSON-Datei speichern
     $saveDir = 'form_submissions/';
     if (!is_dir($saveDir)) {
@@ -71,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $emailBody = "<p>$emailPreText</p><table border='1' cellpadding='5' cellspacing='0'>";
     
     // Definiere die Namen der versteckten Felder, die nicht in die E-Mail aufgenommen werden sollen
-    $hiddenFields = ['file_attachments', 'email_subject', 'email_recipients', 'email_pretext', 'email_posttext'];
+    $hiddenFields = ['file_attachments', 'email_subject', 'email_recipients', 'email_pretext', 'email_posttext', 'formdatetime'];  // formdatetime hinzufügen
 
     foreach ($postData as $key => $value) {
         if (!in_array($key, $hiddenFields)) {
@@ -131,8 +135,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $mail->send();
         }
 
-        //echo "E-Mails wurden gesendet.";
-
     } catch (Exception $e) {
         echo "E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}";
     }
@@ -152,10 +154,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     curl_close($ch);
 
     // Antwort an den Benutzer
-    //echo "Formulardaten wurden übermittelt.";
     exit('success');
 
 } else {
-    //echo "Ungültige Anforderung.";
+    echo "Ungültige Anforderung.";
 }
-?>

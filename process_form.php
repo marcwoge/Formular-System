@@ -17,17 +17,7 @@ require 'include/PHPMailer/src/Exception.php';
 require 'include/PHPMailer/src/PHPMailer.php';
 require 'include/PHPMailer/src/SMTP.php';
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $submissionFingerprint = buildSubmissionFingerprint($_POST, $_FILES);
-    if (isDuplicateSubmission($submissionFingerprint)) {
-        exit('success');
-    }
-
-    storeSubmissionGuard($submissionFingerprint, 'pending');
     $timestamp = date('YmdHis');
     $userContext = resolveCurrentUserContext($userContextConfig);
     $hiddenFields = getHiddenFields();
@@ -49,7 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
             $fileUrl = $scheme . $_SERVER['HTTP_HOST'] . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/' . $uploadFile;
         } else {
-            clearSubmissionGuard($submissionFingerprint);
             exit('Datei konnte nicht hochgeladen werden.');
         }
     }
@@ -136,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->send();
         }
     } catch (Exception $e) {
-        clearSubmissionGuard($submissionFingerprint);
         exit("E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}");
     }
 
@@ -151,7 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_close($ch);
     }
 
-    storeSubmissionGuard($submissionFingerprint, 'success');
     exit('success');
 }
 
@@ -293,86 +280,6 @@ function mergeUserContextValue(array &$postData, string $key, string $detectedVa
     if (!isset($postData[$key])) {
         $postData[$key] = '';
     }
-}
-
-function buildSubmissionFingerprint(array $postData, array $files): string
-{
-    $normalizedPostData = normalizeSubmissionFingerprintValue($postData);
-    unset($normalizedPostData['formdatetime']);
-
-    $normalizedFiles = [];
-    foreach ($files as $key => $file) {
-        $normalizedFiles[$key] = normalizeSubmissionFingerprintValue([
-            'name' => $file['name'] ?? '',
-            'size' => $file['size'] ?? 0,
-            'error' => $file['error'] ?? 0,
-        ]);
-    }
-
-    return hash('sha256', json_encode([
-        'post' => $normalizedPostData,
-        'files' => $normalizedFiles,
-    ], JSON_UNESCAPED_UNICODE));
-}
-
-function normalizeSubmissionFingerprintValue($value)
-{
-    if (is_array($value)) {
-        ksort($value);
-
-        foreach ($value as $key => $item) {
-            $value[$key] = normalizeSubmissionFingerprintValue($item);
-        }
-
-        return $value;
-    }
-
-    return trim((string) $value);
-}
-
-function isDuplicateSubmission(string $fingerprint): bool
-{
-    $guards = getSubmissionGuards();
-
-    if (!isset($guards[$fingerprint])) {
-        return false;
-    }
-
-    $guard = $guards[$fingerprint];
-
-    return in_array($guard['state'] ?? '', ['pending', 'success'], true);
-}
-
-function storeSubmissionGuard(string $fingerprint, string $state): void
-{
-    $guards = getSubmissionGuards();
-    $guards[$fingerprint] = [
-        'state' => $state,
-        'timestamp' => time(),
-    ];
-
-    $_SESSION['form_submission_guards'] = $guards;
-}
-
-function clearSubmissionGuard(string $fingerprint): void
-{
-    $guards = getSubmissionGuards();
-    unset($guards[$fingerprint]);
-    $_SESSION['form_submission_guards'] = $guards;
-}
-
-function getSubmissionGuards(): array
-{
-    $guards = $_SESSION['form_submission_guards'] ?? [];
-    $expiresBefore = time() - 30;
-
-    foreach ($guards as $fingerprint => $guard) {
-        if (($guard['timestamp'] ?? 0) < $expiresBefore) {
-            unset($guards[$fingerprint]);
-        }
-    }
-
-    return $guards;
 }
 
 function resolvePdfLogoPath(): ?string

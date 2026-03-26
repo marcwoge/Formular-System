@@ -94,25 +94,10 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
         const forms = document.querySelectorAll('.validated-form');
 
         forms.forEach(form => {
-            const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
-
-            submitButtons.forEach(button => {
-                button.addEventListener('click', function (event) {
-                    if (form.dataset.requestInFlight === 'true') {
-                        event.preventDefault();
-                        return;
-                    }
-
-                    if (form.checkValidity()) {
-                        setFormSubmittingState(form, true);
-                    }
-                });
-            });
-
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
-                if (form.dataset.requestInFlight === 'true') {
+                if (form.dataset.submitting === 'true') {
                     return;
                 }
 
@@ -121,13 +106,11 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
                     return;
                 }
 
-                form.dataset.requestInFlight = 'true';
-                const formData = new FormData(form);
                 setFormSubmittingState(form, true);
 
-                fetch('process_form.php', {
+                fetch(form.getAttribute('action') || 'process_form.php', {
                     method: 'POST',
-                    body: formData
+                    body: new FormData(form)
                 })
                 .then(response => response.text())
                 .then(data => {
@@ -136,14 +119,12 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
                         alert('Die Daten wurden erfolgreich übertragen.');
                         window.location.href = window.location.pathname + window.location.search;
                     } else {
-                        form.dataset.requestInFlight = 'false';
                         setFormSubmittingState(form, false);
                         alert('Ein Fehler ist aufgetreten: ' + data);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    form.dataset.requestInFlight = 'false';
                     setFormSubmittingState(form, false);
                     alert('Ein Fehler ist aufgetreten: ' + error);
                 });

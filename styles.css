@@ -148,6 +148,25 @@ select {
     background-color: #F9F9F9;
 }
 
+.user-context-box {
+    border: 1px solid #CCD5E0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #F7FAFD;
+}
+
+.user-context-box legend {
+    color: #003057;
+    font-weight: bold;
+    padding: 0 6px;
+}
+
+.user-context-box input[readonly] {
+    background-color: #EEF3F8;
+    color: #44566C;
+}
+
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -285,6 +304,14 @@ footer {
     margin-top: 70px;
     padding: 20px;
     transition: margin-left 0.3s ease;
+}
+
+.main-content-no-header {
+    margin-top: 20px;
+}
+
+.main-content-no-footer {
+    padding-bottom: 20px;
 }
 
 .form-step {

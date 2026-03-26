@@ -97,7 +97,12 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
+                if (form.dataset.submitting === 'true') {
+                    return;
+                }
+
                 const formData = new FormData(form);
+                setFormSubmittingState(form, true);
 
                 fetch('process_form.php', {
                     method: 'POST',
@@ -110,15 +115,50 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
                         alert('Die Daten wurden erfolgreich übertragen.');
                         window.location.href = window.location.pathname + window.location.search;
                     } else {
+                        setFormSubmittingState(form, false);
                         alert('Ein Fehler ist aufgetreten: ' + data);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    setFormSubmittingState(form, false);
                     alert('Ein Fehler ist aufgetreten: ' + error);
                 });
             });
         });
+
+        function setFormSubmittingState(form, isSubmitting) {
+            form.dataset.submitting = isSubmitting ? 'true' : 'false';
+
+            const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+            submitButtons.forEach(button => {
+                if (isSubmitting) {
+                    button.dataset.originalDisabled = button.disabled ? 'true' : 'false';
+
+                    if (button.tagName === 'BUTTON') {
+                        button.dataset.originalLabel = button.textContent;
+                        button.textContent = 'Wird verarbeitet...';
+                        button.classList.add('is-submitting');
+                    } else {
+                        button.dataset.originalLabel = button.value;
+                        button.value = 'Wird verarbeitet...';
+                    }
+
+                    button.disabled = true;
+                    button.setAttribute('aria-busy', 'true');
+                } else {
+                    if (button.tagName === 'BUTTON' && button.dataset.originalLabel) {
+                        button.textContent = button.dataset.originalLabel;
+                        button.classList.remove('is-submitting');
+                    } else if (button.dataset.originalLabel) {
+                        button.value = button.dataset.originalLabel;
+                    }
+
+                    button.disabled = button.dataset.originalDisabled === 'true';
+                    button.removeAttribute('aria-busy');
+                }
+            });
+        }
     });
     </script>
 </head>

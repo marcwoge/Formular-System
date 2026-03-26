@@ -281,6 +281,42 @@ button:hover {
     background-color: #e40038;
 }
 
+button:disabled,
+input[type="submit"]:disabled {
+    background-color: #7A8EA5;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+button.is-submitting {
+    position: relative;
+    padding-right: 44px;
+}
+
+button.is-submitting::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: submit-spinner 0.8s linear infinite;
+}
+
+@keyframes submit-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 footer {
     background-color: #003057;
     color: white;

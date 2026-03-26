@@ -173,6 +173,18 @@ select {
     color: #44566C;
 }
 
+.readonly-field {
+    background-color: #EEF3F8;
+    color: #66788A;
+}
+
+.field-hint {
+    display: block;
+    margin: -6px 0 12px;
+    color: #66788A;
+    font-size: 12px;
+}
+
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;

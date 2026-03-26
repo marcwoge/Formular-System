@@ -5,7 +5,11 @@
 /img/
 /uploads/
 /form_submissions/
-/forms/Arbeitssicherheit/
-/forms/Umweltmanagement/
+/forms/*
+!/forms/start.php
+!/forms/demo/
+!/forms/demo/**
+!/forms/IT/
+!/forms/IT/**
 
 

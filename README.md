@@ -153,7 +153,9 @@ The PDF output is built in two layers:
 
 If you want to change which values appear in the PDF or where they are placed, start with `include/pdf_template.php`.
 
-If a local file `img/logo.png`, `img/logo.jpg` or `img/logo.jpeg` exists, it is automatically used in the PDF. The `img/` folder is ignored by Git, so the logo stays local unless you explicitly change that.
+If a local file `img/pdf_logo.png`, `img/pdf_logo.jpg` or `img/pdf_logo.jpeg` exists, it is automatically preferred for the PDF. Otherwise the PDF falls back to `img/logo.png`, `img/logo.jpg` or `img/logo.jpeg`. The `img/` folder is ignored by Git, so the logo stays local unless you explicitly change that.
+
+The PDF footer can be configured via `pdf_footer_lines` in `config/texts.php`. Each array entry is rendered as one centered line at the bottom of every PDF page.
 
 ### File `forms/start.php`
 The file `forms/start.php` contains the welcome page alias Startpage when you visit the index.php without any parameters.

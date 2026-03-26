@@ -10,6 +10,7 @@ use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 
 $mailConfig = loadProjectConfig('mailconfig');
+$textsConfig = loadProjectConfig('texts');
 $userContextConfig = loadProjectConfig('usercontext');
 
 require 'include/PHPMailer/src/Exception.php';
@@ -190,7 +191,9 @@ function buildPdfFilename(string $timestamp, array $postData): string
 
 function createSubmissionPdf(string $pdfPath, array $postData, array $hiddenFields): void
 {
-    $document = buildSubmissionPdfDocument($postData, $hiddenFields);
+    global $textsConfig;
+
+    $document = buildSubmissionPdfDocument($postData, $hiddenFields, $textsConfig);
     $document['logo_path'] = resolvePdfLogoPath();
     $generator = new SimplePdfGenerator();
     file_put_contents($pdfPath, $generator->renderSubmissionDocument($document));
@@ -282,6 +285,9 @@ function mergeUserContextValue(array &$postData, string $key, string $detectedVa
 function resolvePdfLogoPath(): ?string
 {
     $candidates = [
+        __DIR__ . '/img/pdf_logo.png',
+        __DIR__ . '/img/pdf_logo.jpg',
+        __DIR__ . '/img/pdf_logo.jpeg',
         __DIR__ . '/img/logo.png',
         __DIR__ . '/img/logo.jpg',
         __DIR__ . '/img/logo.jpeg',

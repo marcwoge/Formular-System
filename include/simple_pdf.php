@@ -12,12 +12,14 @@ class SimplePdfGenerator
     private $pages = [];
     private $currentCommands = [];
     private $logoAsset = null;
+    private $footerLines = [];
 
     public function renderSubmissionDocument(array $document): string
     {
         $this->pages = [];
         $this->currentCommands = [];
         $this->logoAsset = $this->loadLogoAsset($document['logo_path'] ?? null);
+        $this->footerLines = is_array($document['footer_lines'] ?? null) ? $document['footer_lines'] : [];
 
         $this->startPage();
 
@@ -155,7 +157,28 @@ class SimplePdfGenerator
     private function finishPage(): void
     {
         if (!empty($this->currentCommands)) {
+            $this->renderFooter();
             $this->pages[] = implode("\n", $this->currentCommands);
+        }
+    }
+
+    private function renderFooter(): void
+    {
+        if (empty($this->footerLines)) {
+            return;
+        }
+
+        $lineY = $this->marginBottom - 10;
+        $textY = $lineY - 12;
+        $centerX = $this->pageWidth / 2;
+        $lineHeight = 11;
+
+        $this->addLine($this->marginLeft, $lineY, $this->pageWidth - $this->marginRight, $lineY);
+
+        foreach ($this->footerLines as $index => $line) {
+            $estimatedWidth = strlen($this->convertToPdfEncoding($line)) * 2.7;
+            $x = max($this->marginLeft, $centerX - ($estimatedWidth / 2));
+            $this->addText($x, $textY - ($index * $lineHeight), $line, 'F1', 8);
         }
     }
 

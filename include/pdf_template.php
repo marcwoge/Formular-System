@@ -1,6 +1,6 @@
 <?php
 
-function buildSubmissionPdfDocument(array $postData, array $hiddenFields): array
+function buildSubmissionPdfDocument(array $postData, array $hiddenFields, array $textsConfig = []): array
 {
     $createdAt = date('d.m.Y H:i:s');
 
@@ -18,6 +18,7 @@ function buildSubmissionPdfDocument(array $postData, array $hiddenFields): array
             return !preg_match('/:\s*$/', $line);
         })),
         'rows' => buildSubmissionPdfRows($postData, $hiddenFields),
+        'footer_lines' => normalizePdfFooterLines($textsConfig),
     ];
 }
 
@@ -44,4 +45,23 @@ function buildSubmissionPdfRows(array $postData, array $hiddenFields): array
     }
 
     return $rows;
+}
+
+function normalizePdfFooterLines(array $textsConfig): array
+{
+    $footerLines = $textsConfig['pdf_footer_lines'] ?? [];
+
+    if (is_string($footerLines) && trim($footerLines) !== '') {
+        $footerLines = preg_split('/\r\n|\r|\n/', $footerLines);
+    }
+
+    if (!is_array($footerLines)) {
+        $footerLines = [];
+    }
+
+    return array_values(array_filter(array_map(static function ($line) {
+        return trim((string) $line);
+    }, $footerLines), static function ($line) {
+        return $line !== '';
+    }));
 }

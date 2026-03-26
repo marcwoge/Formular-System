@@ -3,8 +3,7 @@ return [
     'email_domain' => null,
     'field_labels' => [
         'section_title' => 'Angemeldeter Windows-Benutzer',
-        'display_name' => 'Benutzername',
-        'username' => 'Windows-Login',
+        'display_name' => 'Name',
         'email' => 'E-Mail-Adresse',
     ],
     'ldap' => [

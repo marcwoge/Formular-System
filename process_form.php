@@ -2,6 +2,7 @@
 mb_internal_encoding('UTF-8');
 
 require_once __DIR__ . '/include/config_loader.php';
+require_once __DIR__ . '/include/pdf_template.php';
 require_once __DIR__ . '/include/user_context.php';
 require_once __DIR__ . '/include/simple_pdf.php';
 
@@ -48,7 +49,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postData['file_link'] = $fileUrl;
     }
 
-    if (empty($postData['email']) && !empty($userContext['email'])) {
+    if (empty($postData['email']) && !empty($postData['current_windows_email'])) {
+        $postData['email'] = $postData['current_windows_email'];
+    } elseif (empty($postData['email']) && !empty($userContext['email'])) {
         $postData['email'] = $userContext['email'];
     }
 
@@ -154,9 +157,8 @@ function getHiddenFields(): array
 
 function enrichPostDataWithUserContext(array &$postData, array $userContext): void
 {
-    $postData['current_windows_display_name'] = $userContext['display_name'] ?? '';
-    $postData['current_windows_user'] = $userContext['username'] ?? '';
-    $postData['current_windows_email'] = $userContext['email'] ?? '';
+    mergeUserContextValue($postData, 'current_windows_display_name', $userContext['display_name'] ?? '');
+    mergeUserContextValue($postData, 'current_windows_email', $userContext['email'] ?? '');
 }
 
 function attachStaticFiles(PHPMailer $mail, array $postData): void
@@ -188,23 +190,10 @@ function buildPdfFilename(string $timestamp, array $postData): string
 
 function createSubmissionPdf(string $pdfPath, array $postData, array $hiddenFields): void
 {
-    $lines = [
-        'Formularausgabe',
-        'Titel: ' . normalizeSubmittedValue($postData['form_title'] ?? 'Formular'),
-        'Erstellt am: ' . date('d.m.Y H:i:s'),
-        '',
-    ];
-
-    foreach ($postData as $key => $value) {
-        if (in_array($key, $hiddenFields, true)) {
-            continue;
-        }
-
-        $lines[] = formatFieldLabel($key) . ': ' . normalizeSubmittedValue($value);
-    }
-
+    $document = buildSubmissionPdfDocument($postData, $hiddenFields);
+    $document['logo_path'] = resolvePdfLogoPath();
     $generator = new SimplePdfGenerator();
-    file_put_contents($pdfPath, $generator->render($lines));
+    file_put_contents($pdfPath, $generator->renderSubmissionDocument($document));
 }
 
 function buildEmailBody(string $emailPreText, string $emailPostText, array $postData, array $hiddenFields): string
@@ -260,5 +249,49 @@ function normalizeSubmittedValue($value): string
 
 function formatFieldLabel(string $key): string
 {
+    $labelMap = [
+        'current_windows_display_name' => 'Name',
+        'current_windows_user' => 'Username',
+        'current_windows_email' => 'Email',
+        'email' => 'Email',
+        'formdatetime' => 'Erstellt am',
+        'file_link' => 'Datei-Link',
+    ];
+
+    if (isset($labelMap[$key])) {
+        return $labelMap[$key];
+    }
+
     return ucwords(str_replace('_', ' ', $key));
+}
+
+function mergeUserContextValue(array &$postData, string $key, string $detectedValue): void
+{
+    $detectedValue = trim($detectedValue);
+
+    if ($detectedValue !== '') {
+        $postData[$key] = $detectedValue;
+        return;
+    }
+
+    if (!isset($postData[$key])) {
+        $postData[$key] = '';
+    }
+}
+
+function resolvePdfLogoPath(): ?string
+{
+    $candidates = [
+        __DIR__ . '/img/logo.png',
+        __DIR__ . '/img/logo.jpg',
+        __DIR__ . '/img/logo.jpeg',
+    ];
+
+    foreach ($candidates as $candidate) {
+        if (file_exists($candidate) && is_file($candidate)) {
+            return $candidate;
+        }
+    }
+
+    return null;
 }

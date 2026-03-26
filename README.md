@@ -117,17 +117,15 @@ All forms are stored in the folderr `forms/` you can create new by adding a file
     your Form here
 </form>
 ```
-Optionally, each form file can now define a `$formPageConfig` array before the HTML to control page header and footer for that specific file.
+Optionally, each form file can define a `$formPageConfig` array before the HTML to control the page header. If no custom title is set, the system automatically uses the value from `<input type="hidden" name="form_title" ...>`.
 
 ```
 <?php
 $formPageConfig = [
     'title' => 'Besucheranmeldung',
     'show_header' => true,
-    'show_footer' => true,
     'header_title' => 'NTC Besucheranmeldung',
     'show_logo' => true,
-    'footer_html' => '<p id="disclaimer">Interne Verwendung</p>',
 ];
 ?>
 
@@ -138,10 +136,24 @@ $formPageConfig = [
 
 - `title`: Browser title and default page title for this file.
 - `show_header`: Shows or hides the page header for this file.
-- `show_footer`: Shows or hides the page footer for this file.
 - `header_title`: Overrides the text shown in the header.
 - `show_logo`: Shows or hides the logo inside the header.
-- `footer_html`: Replaces the global footer content for this file.
+
+The global footer still follows the existing `nav` behaviour:
+
+- `nav=true`: header, navigation and footer
+- `nav=wiki`: no header, no navigation, no footer
+- `nav` empty: header without navigation, footer hidden
+
+### PDF Template
+The PDF output is built in two layers:
+
+- `include/pdf_template.php`: Defines the content and layout structure of the submission PDF.
+- `include/simple_pdf.php`: Draws the PDF itself, including the summary area and the data table.
+
+If you want to change which values appear in the PDF or where they are placed, start with `include/pdf_template.php`.
+
+If a local file `img/logo.png`, `img/logo.jpg` or `img/logo.jpeg` exists, it is automatically used in the PDF. The `img/` folder is ignored by Git, so the logo stays local unless you explicitly change that.
 
 ### File `forms/start.php`
 The file `forms/start.php` contains the welcome page alias Startpage when you visit the index.php without any parameters.

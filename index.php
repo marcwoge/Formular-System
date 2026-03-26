@@ -19,10 +19,8 @@ $pageFound = true;
 $pageConfig = [
     'title' => $formName,
     'show_header' => true,
-    'show_footer' => true,
     'header_title' => null,
     'show_logo' => true,
-    'footer_html' => null,
 ];
 
 if (isset($_GET['page'])) {
@@ -70,8 +68,8 @@ if ($pageFound) {
 }
 
 $shouldShowHeader = $navType !== 'wiki' && $pageConfig['show_header'];
-$shouldShowFooter = $navType !== 'wiki' && $navType !== '' && $pageConfig['show_footer'];
-$headerTitle = $pageConfig['header_title'] ?? ('Formular Portal: ' . $formName);
+$shouldShowFooter = $navType !== 'wiki' && $navType !== '';
+$headerTitle = $pageConfig['header_title'] ?? $formName;
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -173,11 +171,7 @@ $headerTitle = $pageConfig['header_title'] ?? ('Formular Portal: ' . $formName);
 
     <?php if ($shouldShowFooter): ?>
     <footer>
-        <?php if ($pageConfig['footer_html'] !== null): ?>
-        <?= $pageConfig['footer_html'] ?>
-        <?php else: ?>
         <p id="disclaimer"><?= $texts['disclaimer']; ?></p>
-        <?php endif; ?>
     </footer>
     <?php endif; ?>
     <script>

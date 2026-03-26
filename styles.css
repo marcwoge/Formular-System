@@ -162,6 +162,12 @@ select {
     padding: 0 6px;
 }
 
+.user-context-hint {
+    margin: 0 0 12px;
+    color: #44566C;
+    font-size: 13px;
+}
+
 .user-context-box input[readonly] {
     background-color: #EEF3F8;
     color: #44566C;

@@ -5,10 +5,8 @@ function loadFormPage(string $pagePath, string $defaultTitle): array
     $defaultConfig = [
         'title' => $defaultTitle,
         'show_header' => true,
-        'show_footer' => true,
         'header_title' => null,
         'show_logo' => true,
-        'footer_html' => null,
     ];
     $formPageConfig = $defaultConfig;
 
@@ -21,12 +19,11 @@ function loadFormPage(string $pagePath, string $defaultTitle): array
     }
 
     $formPageConfig = array_merge($defaultConfig, $formPageConfig);
-    $formPageConfig['title'] = normalizeFormPageTitle($formPageConfig['title'], $defaultTitle);
+    $detectedFormTitle = extractHiddenInputValue($content, 'form_title');
+    $formPageConfig['title'] = normalizeFormPageTitle($formPageConfig['title'], $detectedFormTitle ?: $defaultTitle);
     $formPageConfig['header_title'] = normalizeNullableString($formPageConfig['header_title']);
     $formPageConfig['show_header'] = (bool) $formPageConfig['show_header'];
-    $formPageConfig['show_footer'] = (bool) $formPageConfig['show_footer'];
     $formPageConfig['show_logo'] = (bool) $formPageConfig['show_logo'];
-    $formPageConfig['footer_html'] = normalizeNullableString($formPageConfig['footer_html']);
 
     return [
         'content' => $content,
@@ -46,4 +43,14 @@ function normalizeNullableString($value): ?string
     $value = trim((string) $value);
 
     return $value !== '' ? $value : null;
+}
+
+function extractHiddenInputValue(string $content, string $name): ?string
+{
+    $pattern = '/<input\b[^>]*type\s*=\s*["\']hidden["\'][^>]*name\s*=\s*["\']' . preg_quote($name, '/') . '["\'][^>]*value\s*=\s*["\']([^"\']*)["\']/i';
+    if (!preg_match($pattern, $content, $matches)) {
+        return null;
+    }
+
+    return html_entity_decode(trim($matches[1]), ENT_QUOTES, 'UTF-8');
 }

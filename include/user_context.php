@@ -70,8 +70,7 @@ function getUserContextLabels(array $config): array
 {
     $defaults = [
         'section_title' => 'Angemeldeter Windows-Benutzer',
-        'display_name' => 'Benutzername',
-        'username' => 'Windows-Login',
+        'display_name' => 'Name',
         'email' => 'E-Mail-Adresse',
     ];
 

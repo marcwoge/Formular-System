@@ -54,6 +54,32 @@ return [
 'server_url' => 'https://SERVER/request',
 ];
 ```
+- User Context Configuration:
+
+    - Optional: Rename `config/usercontext_default.php` to `usercontext.php`.
+    - Use this file if you want to derive the logged-in Windows user and, if needed, enrich it with a mail domain or LDAP lookup.
+```
+return [
+    'email_domain' => 'example.com',
+    'field_labels' => [
+        'section_title' => 'Angemeldeter Windows-Benutzer',
+        'display_name' => 'Benutzername',
+        'username' => 'Windows-Login',
+        'email' => 'E-Mail-Adresse',
+    ],
+    'ldap' => [
+        'enabled' => false,
+        'host' => 'ldap://dc.example.local',
+        'port' => 389,
+        'base_dn' => 'DC=example,DC=local',
+        'bind_dn' => null,
+        'bind_password' => null,
+        'user_filter' => '(sAMAccountName=%s)',
+        'display_name_attribute' => 'displayName',
+        'mail_attribute' => 'mail',
+    ],
+];
+```
 - Text Configuration:
 
     - Rename config/texts_default.php to texts.php.
@@ -91,6 +117,46 @@ All forms are stored in the folderr `forms/` you can create new by adding a file
     your Form here
 </form>
 ```
+Optionally, each form file can define a `$formPageConfig` array before the HTML to control the page header. If no custom title is set, the system automatically uses the value from `<input type="hidden" name="form_title" ...>`.
+
+```
+<?php
+$formPageConfig = [
+    'title' => 'Besucheranmeldung',
+    'show_header' => true,
+    'header_title' => 'NTC Besucheranmeldung',
+    'show_logo' => true,
+];
+?>
+
+<form action="process_form.php" method="POST" class="validated-form">
+    ...
+</form>
+```
+
+- `title`: Browser title and default page title for this file.
+- `show_header`: Shows or hides the page header for this file.
+- `header_title`: Overrides the text shown in the header.
+- `show_logo`: Shows or hides the logo inside the header.
+
+The global footer still follows the existing `nav` behaviour:
+
+- `nav=true`: header, navigation and footer
+- `nav=wiki`: no header, no navigation, no footer
+- `nav` empty: header without navigation, footer hidden
+
+### PDF Template
+The PDF output is built in two layers:
+
+- `include/pdf_template.php`: Defines the content and layout structure of the submission PDF.
+- `include/simple_pdf.php`: Draws the PDF itself, including the summary area and the data table.
+
+If you want to change which values appear in the PDF or where they are placed, start with `include/pdf_template.php`.
+
+If a local file `img/pdf_logo.png`, `img/pdf_logo.jpg` or `img/pdf_logo.jpeg` exists, it is automatically preferred for the PDF. Otherwise the PDF falls back to `img/logo.png`, `img/logo.jpg` or `img/logo.jpeg`. The `img/` folder is ignored by Git, so the logo stays local unless you explicitly change that.
+
+The PDF footer can be configured via `pdf_footer_lines` in `config/texts.php`. Each array entry is rendered as one centered line at the bottom of every PDF page.
+
 ### File `forms/start.php`
 The file `forms/start.php` contains the welcome page alias Startpage when you visit the index.php without any parameters.
 ### Form Directory Structure
@@ -361,6 +427,18 @@ Embeds a video with controls.
 
 ## Form Submissions
 All form submissions are saved in the form_submissions directory as JSON files. Each submission is stored in a separate file, named based on the timestamp of the submission. This allows for easy review and processing of submitted data.
+
+Each submission now also creates a PDF representation in `form_submissions/`. This PDF is attached to outgoing mails automatically.
+
+## Windows User Prefill
+If the web server exposes the current Windows user via variables such as `REMOTE_USER`, `AUTH_USER`, `LOGON_USER`, `PHP_AUTH_USER` or similar, the system now:
+
+- shows the detected user in a read-only section at the top of each form,
+- sends the detected values as part of the submission,
+- tries to prefill common form fields such as `name`, `username` and `email`,
+- attaches the generated PDF to the recipient mail and the optional confirmation mail to the submitter.
+
+The mail address can only be detected automatically if the server provides it, if you configure `email_domain`, or if an LDAP lookup is enabled and available.
 
 # License
 The software is licensed under the MIT License. Please refer to the LICENSE file for more details.

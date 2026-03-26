@@ -148,6 +148,43 @@ select {
     background-color: #F9F9F9;
 }
 
+.user-context-box {
+    border: 1px solid #CCD5E0;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #F7FAFD;
+}
+
+.user-context-box legend {
+    color: #003057;
+    font-weight: bold;
+    padding: 0 6px;
+}
+
+.user-context-hint {
+    margin: 0 0 12px;
+    color: #44566C;
+    font-size: 13px;
+}
+
+.user-context-box input[readonly] {
+    background-color: #EEF3F8;
+    color: #44566C;
+}
+
+.readonly-field {
+    background-color: #EEF3F8;
+    color: #66788A;
+}
+
+.field-hint {
+    display: block;
+    margin: -6px 0 12px;
+    color: #66788A;
+    font-size: 12px;
+}
+
 input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
@@ -244,6 +281,42 @@ button:hover {
     background-color: #e40038;
 }
 
+button:disabled,
+input[type="submit"]:disabled {
+    background-color: #7A8EA5;
+    cursor: not-allowed;
+    opacity: 0.9;
+}
+
+button.is-submitting {
+    position: relative;
+    padding-right: 44px;
+}
+
+button.is-submitting::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: submit-spinner 0.8s linear infinite;
+}
+
+@keyframes submit-spinner {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 footer {
     background-color: #003057;
     color: white;
@@ -285,6 +358,14 @@ footer {
     margin-top: 70px;
     padding: 20px;
     transition: margin-left 0.3s ease;
+}
+
+.main-content-no-header {
+    margin-top: 20px;
+}
+
+.main-content-no-footer {
+    padding-bottom: 20px;
 }
 
 .form-step {

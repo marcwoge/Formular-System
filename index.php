@@ -94,13 +94,34 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
         const forms = document.querySelectorAll('.validated-form');
 
         forms.forEach(form => {
+            const submitButtons = form.querySelectorAll('button[type="submit"], input[type="submit"]');
+
+            submitButtons.forEach(button => {
+                button.addEventListener('click', function (event) {
+                    if (form.dataset.requestInFlight === 'true') {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    if (form.checkValidity()) {
+                        setFormSubmittingState(form, true);
+                    }
+                });
+            });
+
             form.addEventListener('submit', function (event) {
                 event.preventDefault();
 
-                if (form.dataset.submitting === 'true') {
+                if (form.dataset.requestInFlight === 'true') {
                     return;
                 }
 
+                if (!form.checkValidity()) {
+                    setFormSubmittingState(form, false);
+                    return;
+                }
+
+                form.dataset.requestInFlight = 'true';
                 const formData = new FormData(form);
                 setFormSubmittingState(form, true);
 
@@ -115,12 +136,14 @@ $headerTitle = $pageConfig['header_title'] ?? $formName;
                         alert('Die Daten wurden erfolgreich übertragen.');
                         window.location.href = window.location.pathname + window.location.search;
                     } else {
+                        form.dataset.requestInFlight = 'false';
                         setFormSubmittingState(form, false);
                         alert('Ein Fehler ist aufgetreten: ' + data);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
+                    form.dataset.requestInFlight = 'false';
                     setFormSubmittingState(form, false);
                     alert('Ein Fehler ist aufgetreten: ' + error);
                 });

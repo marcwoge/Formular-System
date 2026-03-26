@@ -2,7 +2,7 @@
 
 function loadFormPage(string $pagePath, string $defaultTitle): array
 {
-    $formPageConfig = [
+    $defaultConfig = [
         'title' => $defaultTitle,
         'show_header' => true,
         'show_footer' => true,
@@ -10,11 +10,17 @@ function loadFormPage(string $pagePath, string $defaultTitle): array
         'show_logo' => true,
         'footer_html' => null,
     ];
+    $formPageConfig = $defaultConfig;
 
     ob_start();
     include $pagePath;
     $content = ob_get_clean();
 
+    if (!is_array($formPageConfig)) {
+        $formPageConfig = [];
+    }
+
+    $formPageConfig = array_merge($defaultConfig, $formPageConfig);
     $formPageConfig['title'] = normalizeFormPageTitle($formPageConfig['title'], $defaultTitle);
     $formPageConfig['header_title'] = normalizeNullableString($formPageConfig['header_title']);
     $formPageConfig['show_header'] = (bool) $formPageConfig['show_header'];

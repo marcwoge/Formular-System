@@ -142,16 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit("E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}");
     }
 
-    $url = $mailConfig['server_url'] ?? '';
-    if (!empty($url)) {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData, JSON_UNESCAPED_UNICODE));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-        curl_exec($ch);
-        curl_close($ch);
-    }
+    dispatchServerCallback($mailConfig, $postData);
 
     storeSubmissionGuard($submissionFingerprint, 'success');
     exit('success');
@@ -305,6 +296,53 @@ function mergeUserContextValue(array &$postData, string $key, string $detectedVa
     if (!isset($postData[$key])) {
         $postData[$key] = '';
     }
+}
+
+function dispatchServerCallback(array $mailConfig, array $postData): void
+{
+    $url = getServerCallbackUrl($mailConfig);
+    if ($url === '') {
+        return;
+    }
+
+    $payload = json_encode($postData, JSON_UNESCAPED_UNICODE);
+    if ($payload === false) {
+        return;
+    }
+
+    $ch = curl_init($url);
+    if ($ch === false) {
+        return;
+    }
+
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_NOSIGNAL, true);
+    curl_exec($ch);
+    curl_close($ch);
+}
+
+function getServerCallbackUrl(array $mailConfig): string
+{
+    $url = trim((string) ($mailConfig['server_url'] ?? ''));
+    if ($url === '') {
+        return '';
+    }
+
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        return '';
+    }
+
+    $host = (string) (parse_url($url, PHP_URL_HOST) ?? '');
+    if ($host === '' || strtoupper($host) === 'SERVER') {
+        return '';
+    }
+
+    return $url;
 }
 
 function buildSubmissionSubject(string $baseSubject, array $postData): string

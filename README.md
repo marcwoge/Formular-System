@@ -432,6 +432,8 @@ Each submission now also creates a PDF representation in `form_submissions/`. Th
 
 Each submission also receives a unique `Meldungsnummer`. By default it is generated as `MEL-YYYYMMDD-####`, is stored with the JSON submission data, is shown in the PDF, and is prepended to the outgoing mail subject. The prefix can be configured via `submission_number_prefix` in `config/texts.php`.
 
+If `server_url` is configured in `config/mailconfig.php`, the submission is also forwarded as JSON to that endpoint. This callback is optional and should only be set when it is really needed.
+
 ## Windows User Prefill
 If the web server exposes the current Windows user via variables such as `REMOTE_USER`, `AUTH_USER`, `LOGON_USER`, `PHP_AUTH_USER` or similar, the system now:
 

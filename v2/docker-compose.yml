@@ -11,6 +11,7 @@ services:
     volumes:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./backend:/var/www/html
+      - ./formshub.png:/var/www/brand-assets/formshub.png:ro
     networks:
       - v2net
 
@@ -24,6 +25,7 @@ services:
       - .env
     volumes:
       - ./backend:/var/www/html
+      - ./formshub.png:/var/www/brand-assets/formshub.png:ro
       - backend_vendor:/var/www/html/vendor
     depends_on:
       db:
@@ -43,6 +45,7 @@ services:
       - .env
     volumes:
       - ./backend:/var/www/html
+      - ./formshub.png:/var/www/brand-assets/formshub.png:ro
       - backend_vendor:/var/www/html/vendor
     depends_on:
       db:
@@ -62,6 +65,7 @@ services:
       - .env
     volumes:
       - ./backend:/var/www/html
+      - ./formshub.png:/var/www/brand-assets/formshub.png:ro
       - backend_vendor:/var/www/html/vendor
     depends_on:
       db:

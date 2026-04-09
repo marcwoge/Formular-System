@@ -45,3 +45,28 @@ Die Struktur ist als V2-Neuaufbau gedacht. Version 1 bleibt getrennt.
 - In der Free Edition muessen Formulare, Footer, PDFs und andere Dokumente einen Copyright- und Free-Version-Hinweis anzeigen.
 - Bei gueltiger Lizenz verschwindet dieser Hinweis automatisch.
 - Fuer spaetere Produktivsetzung sind z. B. `lizenz.systemhub.de` oder `lizenz.woge.engineer` moegliche Ziel-URLs.
+
+## Standard-Branding
+
+- Das Vendor-Standardlogo liegt in ormshub.png im V2-Root.
+- Wenn kein White-Label-Logo konfiguriert ist, wird dieses Logo als Standardlogo verwendet.
+- Wenn eine White-Label-Konfiguration aktiv ist und die Installation lizenziert ist, bleibt das FormsHub-Logo klein im Footer sichtbar.
+- Wenn die Installation unlizenziert ist, erzwingt FormsHub ueberall das Vendor-Logo und zeigt den Free-Edition-Hinweis an.
+
+
+## Aktueller API-Stand
+
+- POST /api/auth/login: lokale Anmeldung per E-Mail und Passwort
+- GET /api/auth/me: aktuelles Benutzerprofil inklusive Rollen, Gruppen und Rechten
+- POST /api/auth/logout: aktuelles API-Token abmelden
+- GET /api/access/catalog: Rollen-, Gruppen- und Rechtekatalog fuer Admins
+- GET /api/forms: vorhandene Formulare laden
+- POST /api/forms: neues Formular mit Initialversion anlegen
+- POST /api/forms/{id}/versions: neue Formularversion erzeugen
+- POST /api/forms/{id}/publish/{versionId}: Formularversion veroeffentlichen
+- GET /api/system/license-status: Lizenz- und Brandingstatus
+
+## Dev-Seed
+
+- Seed legt lokal dmin@example.local mit dem Passwort dmin123! an.
+- Diese Zugangsdaten sind nur fuer Entwicklung gedacht und muessen spaeter durch echte Benutzerverwaltung ersetzt werden.

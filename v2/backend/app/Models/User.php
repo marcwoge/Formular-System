@@ -8,10 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = [
         'name',
@@ -58,6 +59,16 @@ class User extends Authenticatable
         return $this->hasMany(ExternalIdentity::class);
     }
 
+    public function formsCreated(): HasMany
+    {
+        return $this->hasMany(Form::class, 'created_by');
+    }
+
+    public function formVersionsCreated(): HasMany
+    {
+        return $this->hasMany(FormVersion::class, 'created_by');
+    }
+
     public function allPermissions(): Collection
     {
         $directPermissions = $this->roles->loadMissing('permissions')
@@ -81,6 +92,11 @@ class User extends Authenticatable
 
     public function hasPermission(string $slug): bool
     {
-        return $this->allPermissions()->contains('slug', $slug);
+        return $this->hasRole('superadmin') || $this->allPermissions()->contains('slug', $slug);
+    }
+
+    public function permissionSlugs(): array
+    {
+        return $this->allPermissions()->pluck('slug')->values()->all();
     }
 }

@@ -17,6 +17,10 @@ class LicenseStatusTest extends TestCase
         config()->set('licensing.product_code', 'formshub');
         config()->set('licensing.free_edition_notice.enabled', true);
         config()->set('licensing.free_edition_notice.text', 'FormsHub Free Edition - this installation is currently running without a valid commercial license.');
+        config()->set('branding.default_logo_url', '/brand-assets/formshub.png');
+        config()->set('branding.custom_logo_url', '/custom-assets/customer-logo.png');
+        config()->set('branding.custom_app_name', 'Customer Portal');
+        config()->set('branding.force_vendor_when_unlicensed', true);
 
         $response = $this->getJson('/api/system/license-status');
 
@@ -26,7 +30,11 @@ class LicenseStatusTest extends TestCase
             ->assertJsonPath('license.edition', 'free')
             ->assertJsonPath('license.is_valid', false)
             ->assertJsonPath('license.reason', 'missing_remote_configuration')
-            ->assertJsonPath('free_edition_notice.enabled', true);
+            ->assertJsonPath('free_edition_notice.enabled', true)
+            ->assertJsonPath('branding.display_name', 'FormsHub')
+            ->assertJsonPath('branding.primary_logo_url', '/brand-assets/formshub.png')
+            ->assertJsonPath('branding.footer_logo_url', '/brand-assets/formshub.png')
+            ->assertJsonPath('branding.force_vendor_branding', true);
 
         $this->assertDatabaseHas('license_connectors', [
             'name' => 'default',

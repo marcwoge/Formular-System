@@ -1,4 +1,4 @@
-﻿# Formularsystem 2.0
+# FormsHub
 
 ## Zielsetzung
 
@@ -219,6 +219,37 @@ Das bestehende Formularsystem soll zu einer stabilen, sicheren und Docker-faehig
 - DSGVO-relevante Anforderungen beruecksichtigen
 - Kein Speichern produktiver Geheimnisse oder Kunden-CI im Repository
 
+
+## Lizenzierung und Editionsmodell
+
+### Grundsatz
+
+- Version 2.0 muss eine externe Lizenzierungsanbindung unterstuetzen.
+- Als fachliche Referenz ist der bestehende `Lizenz-server` von `marcwoge` vorgesehen.
+- Die konkrete Lizenzserver-URL ist noch offen und muss konfigurierbar sein.
+- Die Plattform muss auch ohne gueltige Lizenz nutzbar bleiben.
+- Ohne gueltige Lizenz laeuft das System als Free Edition.
+
+### Anforderungen
+
+- Lizenzserver-Anbindung ueber konfigurierbaren Connector
+- keine feste Lizenzserver-URL im Repository
+- Lizenzpruefung ueber konfigurierbare URL und Zugangsdaten
+- Lizenzstatus lokal zwischenspeicherbar
+- Lizenzpruefung darf das System nicht hart unbenutzbar machen
+- ohne gueltige Lizenz wird automatisch Free Edition aktiviert
+- mit gueltiger Lizenz verschwindet der Free-Edition-Hinweis automatisch
+- Free-Edition-Hinweis erscheint auf Formularen, im globalen Footer, in PDFs und anderen generierten Dokumenten
+- der Hinweis muss zentral konfigurierbar und themefaehig sein
+- Lizenzstatus muss im Adminbereich sichtbar sein
+- Lizenzereignisse muessen protokolliert werden
+- spaetere Feature-Freischaltung ueber Editionen muss moeglich sein
+
+### Produktname
+
+- Bis zur finalen Namensentscheidung wird ein konfigurierbarer Produktname verwendet.
+- Arbeitsname fuer die V2-Dokumentation: `FormsHub`.
+- Der spaetere Produktname muss zentral in Branding- und Lizenzkonfiguration gepflegt werden koennen.
 ## Plugin-System
 
 ### Ziel
@@ -369,3 +400,4 @@ Das System muss ueber ein echtes Plugin-System fachlich und technisch erweiterba
 - Phase 3: AD und Entra, Gruppen, sensible Formulare, Verschluesselung
 - Phase 4: Antworten, Korrekturen, Archiv, Statistiken, Kiosk-Mode
 - Phase 5: Plugin-System, Scanner-Plugins, Inbound-E-Mail, erweiterte Workflows
+

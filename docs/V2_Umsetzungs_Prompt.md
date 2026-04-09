@@ -1,4 +1,4 @@
-﻿# Prompt Fuer Formularsystem 2.0
+# Prompt Fuer FormsHub
 
 ```text
 Du arbeitest in einem bestehenden PHP-Repository fuer ein einfaches Formularsystem. Erstelle daraus eine echte, produktionsreife Version 2.0. Verwende keine Dummys, keine Fake-Implementierungen, keine Platzhalter-Features und keine nur optischen Oberflaechen ohne funktionierendes Backend. Jede gebaute Funktion muss technisch integriert, testbar und Ende-zu-Ende nutzbar sein.
@@ -163,6 +163,20 @@ Funktionsumfang, der vollstaendig umgesetzt werden soll:
 18. OpenAPI
 - baue eine vollstaendige dokumentierte OpenAPI fuer Benutzer, Gruppen, Rollen, Rechte, Formulare, Formdefinitionen, Submissionen, Antworten, Archive, Plugins, Statistiken und Adminfunktionen
 
+19. Lizenzierung und Free Edition
+- integriere eine externe Lizenzierungsanbindung ueber einen konfigurierbaren Lizenzserver-Connector
+- fachliche Referenz ist der bestehende `Lizenz-server` von `marcwoge`
+- die konkrete Lizenzserver-URL ist noch nicht bekannt und darf deshalb nicht fest im Code hinterlegt werden
+- das System muss auch ohne gueltige Lizenz lauffaehig bleiben
+- ohne gueltige Lizenz laeuft das Produkt als Free Edition
+- in der Free Edition wird auf allen Formularen, im Footer, in PDFs und anderen generierten Dokumenten ein Copyright- und Free-Version-Hinweis eingeblendet
+- bei gueltiger Lizenz verschwindet dieser Hinweis automatisch
+- Lizenzstatus muss im Adminbereich sichtbar sein
+- Lizenzstatus und Lizenzpruefungen muessen protokolliert werden
+- die Lizenzpruefung darf den Kernbetrieb nicht blockieren
+- Lizenzkonfiguration ueber Environment und Admin-Konfiguration vorbereiten
+- Produktname und Free-Edition-Hinweis muessen zentral konfigurierbar sein
+
 Nicht-funktionale Anforderungen:
 - stabiler Docker-Betrieb
 - saubere Containertrennung fuer App, Datenbank, Queue-Worker, Scheduler und Reverse Proxy
@@ -196,3 +210,5 @@ Wichtig:
 - Keine Platzhalter fuer Sicherheit
 - Jede als fertig markierte Funktion muss real funktionieren
 ```
+
+

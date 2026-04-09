@@ -1,0 +1,48 @@
+﻿.shell {
+  min-height: 100vh;
+  padding: 3rem;
+  background: linear-gradient(180deg, #f3f7fb 0%, #e6edf5 100%);
+  color: #10253e;
+}
+
+.hero {
+  max-width: 56rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.8rem;
+  color: #3d678f;
+}
+
+.lead {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  max-width: 48rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(16, 37, 62, 0.08);
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 18px 50px rgba(45, 78, 111, 0.08);
+}
+
+.card h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.75rem;
+}
+
+.card p {
+  margin: 0;
+  line-height: 1.5;
+}

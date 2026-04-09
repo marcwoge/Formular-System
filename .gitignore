@@ -1,4 +1,4 @@
-/config/mailconfig.php
+﻿/config/mailconfig.php
 /config/googleapi.php
 /config/texts.php
 /files/
@@ -12,3 +12,9 @@
 
 
 
+
+/v2/.env
+/v2/.npm-cache/
+/v2/backend/.env
+/v2/backend/vendor/
+/v2/admin/node_modules/

@@ -54,8 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    $saveDir = 'form_submissions/';
+    if (!is_dir($saveDir)) {
+        mkdir($saveDir, 0777, true);
+    }
+
     $postData = $_POST;
     enrichPostDataWithUserContext($postData, $userContext);
+    $postData = ['submission_number' => generateSubmissionNumber($saveDir, $textsConfig)] + $postData;
 
     if ($fileUrl !== '') {
         $postData['file_link'] = $fileUrl;
@@ -68,11 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $postData['formdatetime'] = round(microtime(true) * 1000);
-
-    $saveDir = 'form_submissions/';
-    if (!is_dir($saveDir)) {
-        mkdir($saveDir, 0777, true);
-    }
 
     $pdfFilename = buildPdfFilename($timestamp, $postData);
     $pdfPath = $saveDir . $pdfFilename;
@@ -91,6 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $emailPreText = isset($postData['email_pretext']) ? $postData['email_pretext'] : $defaultPreText;
     $emailPostText = isset($postData['email_posttext']) ? $postData['email_posttext'] : $defaultPostText;
     $userEmail = isset($postData['email']) ? trim((string) $postData['email']) : '';
+    $emailSubject = buildSubmissionSubject($emailSubject, $postData);
 
     $emailBody = buildEmailBody($emailPreText, $emailPostText, $postData, $hiddenFields);
     $plainTextBody = buildPlainTextBody($emailPreText, $emailPostText, $postData, $hiddenFields);
@@ -192,14 +194,23 @@ function attachStaticFiles(PHPMailer $mail, array $postData): void
 function buildPdfFilename(string $timestamp, array $postData): string
 {
     $formTitle = isset($postData['form_title']) ? (string) $postData['form_title'] : 'formular';
+    $submissionNumber = isset($postData['submission_number']) ? (string) $postData['submission_number'] : '';
     $sanitizedTitle = preg_replace('/[^A-Za-z0-9_-]/', '_', $formTitle);
+    $sanitizedNumber = preg_replace('/[^A-Za-z0-9_-]/', '_', $submissionNumber);
     $sanitizedTitle = trim((string) $sanitizedTitle, '_');
+    $sanitizedNumber = trim((string) $sanitizedNumber, '_');
 
     if ($sanitizedTitle === '') {
         $sanitizedTitle = 'formular';
     }
 
-    return $timestamp . '_' . $sanitizedTitle . '.pdf';
+    $parts = [$timestamp];
+    if ($sanitizedNumber !== '') {
+        $parts[] = $sanitizedNumber;
+    }
+    $parts[] = $sanitizedTitle;
+
+    return implode('_', $parts) . '.pdf';
 }
 
 function createSubmissionPdf(string $pdfPath, array $postData, array $hiddenFields): void
@@ -266,6 +277,7 @@ function normalizeSubmittedValue($value): string
 function formatFieldLabel(string $key): string
 {
     $labelMap = [
+        'submission_number' => 'Meldungsnummer',
         'current_windows_display_name' => 'Name',
         'current_windows_user' => 'Username',
         'current_windows_email' => 'Email',
@@ -293,6 +305,59 @@ function mergeUserContextValue(array &$postData, string $key, string $detectedVa
     if (!isset($postData[$key])) {
         $postData[$key] = '';
     }
+}
+
+function buildSubmissionSubject(string $baseSubject, array $postData): string
+{
+    $submissionNumber = trim((string) ($postData['submission_number'] ?? ''));
+    if ($submissionNumber === '') {
+        return $baseSubject;
+    }
+
+    return '[' . $submissionNumber . '] ' . $baseSubject;
+}
+
+function generateSubmissionNumber(string $saveDir, array $textsConfig): string
+{
+    $prefix = trim((string) ($textsConfig['submission_number_prefix'] ?? 'MEL'));
+    if ($prefix === '') {
+        $prefix = 'MEL';
+    }
+
+    $datePart = date('Ymd');
+    $counterFile = rtrim($saveDir, '/\\') . DIRECTORY_SEPARATOR . '.submission_number_counter.json';
+    $fallbackNumber = sprintf('%s-%s-%04d', $prefix, $datePart, random_int(1, 9999));
+    $handle = @fopen($counterFile, 'c+');
+
+    if ($handle === false) {
+        return $fallbackNumber;
+    }
+
+    if (!flock($handle, LOCK_EX)) {
+        fclose($handle);
+        return $fallbackNumber;
+    }
+
+    $rawState = stream_get_contents($handle);
+    $state = is_string($rawState) && trim($rawState) !== '' ? json_decode($rawState, true) : [];
+
+    if (!is_array($state) || ($state['date'] ?? '') !== $datePart) {
+        $state = [
+            'date' => $datePart,
+            'counter' => 0,
+        ];
+    }
+
+    $state['counter'] = ((int) ($state['counter'] ?? 0)) + 1;
+
+    rewind($handle);
+    ftruncate($handle, 0);
+    fwrite($handle, json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    fflush($handle);
+    flock($handle, LOCK_UN);
+    fclose($handle);
+
+    return sprintf('%s-%s-%04d', $prefix, $datePart, $state['counter']);
 }
 
 function buildSubmissionFingerprint(array $postData, array $files): string

@@ -8,6 +8,7 @@ function buildSubmissionPdfDocument(array $postData, array $hiddenFields, array 
         'summary_left' => [
             'Formularausgabe',
             'Titel: ' . normalizeSubmittedValue($postData['form_title'] ?? 'Formular'),
+            'Meldungsnummer: ' . normalizeSubmittedValue($postData['submission_number'] ?? ''),
             'Erstellt am: ' . $createdAt,
         ],
         'summary_right' => array_values(array_filter([
@@ -26,6 +27,7 @@ function buildSubmissionPdfRows(array $postData, array $hiddenFields): array
 {
     $excludedFields = array_merge($hiddenFields, [
         'form_title',
+        'submission_number',
         'current_windows_display_name',
         'current_windows_user',
         'current_windows_email',

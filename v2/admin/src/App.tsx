@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+type AuthProvider = {
+  key: string
+  label: string
+  enabled: boolean
+  login_url: string | null
+}
+
 type SystemContext = {
   product: {
     name: string
@@ -63,6 +70,9 @@ const fallbackContext: SystemContext = {
 
 function App() {
   const [context, setContext] = useState<SystemContext>(fallbackContext)
+  const [providers, setProviders] = useState<AuthProvider[]>([])
+  const [tokenState, setTokenState] = useState<string | null>(null)
+  const [ssoMessage, setSsoMessage] = useState<string | null>(null)
 
   useEffect(() => {
     let isActive = true
@@ -86,14 +96,59 @@ function App() {
         }
       })
 
+    fetch('/api/auth/providers')
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`)
+        }
+
+        return response.json() as Promise<{ providers: AuthProvider[] }>
+      })
+      .then((payload) => {
+        if (isActive) {
+          setProviders(payload.providers)
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setProviders([])
+        }
+      })
+
     return () => {
       isActive = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : ''
+    const params = new URLSearchParams(hash)
+    const token = params.get('access_token')
+    const ssoStatus = params.get('sso')
+    const message = params.get('message')
+
+    if (token) {
+      window.localStorage.setItem('formshub_access_token', token)
+      setTokenState(token)
+    } else {
+      setTokenState(window.localStorage.getItem('formshub_access_token'))
+    }
+
+    if (ssoStatus === 'success') {
+      setSsoMessage('Microsoft 365 Anmeldung erfolgreich verbunden.')
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+
+    if (ssoStatus === 'error') {
+      setSsoMessage(message ?? 'Microsoft 365 Anmeldung fehlgeschlagen.')
+      window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [])
 
   const branding = context.branding ?? fallbackContext.branding
   const showFreeNotice = context.free_edition_notice?.enabled
   const footerLogoUrl = branding?.footer_logo_url
+  const microsoftProvider = providers.find((provider) => provider.key === 'microsoft' && provider.enabled)
 
   return (
     <main className="shell">
@@ -110,6 +165,15 @@ function App() {
           Submissionen, Plugins, Lizenzierung, Statistik und Kiosk-Konfiguration.
         </p>
         {showFreeNotice ? <p className="notice">{context.free_edition_notice.text}</p> : null}
+        {ssoMessage ? <p className="notice notice-secondary">{ssoMessage}</p> : null}
+        <div className="auth-strip">
+          <span>{tokenState ? 'API-Token im Browser vorhanden' : 'Noch kein API-Token im Browser gespeichert'}</span>
+          {microsoftProvider?.login_url ? (
+            <a className="sso-button" href={microsoftProvider.login_url}>
+              Mit Microsoft 365 anmelden
+            </a>
+          ) : null}
+        </div>
       </section>
 
       <section className="grid">

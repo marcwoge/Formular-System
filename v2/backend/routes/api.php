@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AccessCatalogController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\AuthProvidersController;
 use App\Http\Controllers\Api\FormController;
 use App\Http\Controllers\Api\SystemLicenseController;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,7 @@ Route::get('/health', function () {
 Route::get('/system/license-status', SystemLicenseController::class);
 
 Route::prefix('auth')->group(function () {
+    Route::get('/providers', AuthProvidersController::class);
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {

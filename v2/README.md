@@ -70,3 +70,12 @@ Die Struktur ist als V2-Neuaufbau gedacht. Version 1 bleibt getrennt.
 
 - Seed legt lokal dmin@example.local mit dem Passwort dmin123! an.
 - Diese Zugangsdaten sind nur fuer Entwicklung gedacht und muessen spaeter durch echte Benutzerverwaltung ersetzt werden.
+
+
+## Microsoft 365 SSO
+
+- Microsoft 365 / Entra ID SSO ist als OpenID-Connect-Basis ueber Socialite vorgesehen und bereits im Backend verdrahtet.
+- Aktivierung erfolgt ueber MS365_SSO_ENABLED=true sowie AZURE_CLIENT_ID, AZURE_CLIENT_SECRET, AZURE_TENANT_ID und AZURE_REDIRECT_URI.
+- Backend-Routen: /auth/microsoft/redirect und /auth/microsoft/callback.
+- API liefert verfuegbare Auth-Provider ueber /api/auth/providers.
+- Bei erfolgreichem Callback wird der Benutzer ueber external_identities mit dem Identity-Provider verknuepft und ein API-Token fuer das Admin-Frontend erzeugt.

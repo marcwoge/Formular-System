@@ -37,6 +37,9 @@ return [
     'port' => 587,
     'encryption' => 'tls',  // or 'ssl'
     'from' => 'your_email@example.com',
+    'timeout' => 10,
+    'smtp_keepalive' => true,
+    'smtp_auto_tls' => true,
     'SMTPOptions' => [
         'ssl' => [
             'verify_peer' => false,
@@ -54,6 +57,8 @@ return [
 'server_url' => 'https://SERVER/request',
 ];
 ```
+
+The form submission now returns `success` immediately after the submission data, JSON file and PDF have been written. Mail delivery and the optional callback continue afterwards in the background. If SMTP is slow, the browser no longer has to wait for the full mail roundtrip.
 - User Context Configuration:
 
     - Optional: Rename `config/usercontext_default.php` to `usercontext.php`.

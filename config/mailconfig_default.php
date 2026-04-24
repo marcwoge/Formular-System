@@ -1,28 +1,26 @@
 <?php
+
 return [
     'host' => 'SERVER',
-    'SMTPAuth' => true,  // Boolean-Wert, daher ohne Anführungszeichen
+    'SMTPAuth' => true,
     'username' => 'USERNAME',
     'password' => 'PASSWORD',
     'port' => 587,
-    'encryption' => '',  // Für keine Verschlüsselung leer lassen
+    'encryption' => '',
     'from' => 'email@example.com',
-
-    // Zertifikatsprüfung deaktivieren (für selbstsignierte oder ungültige Zertifikate)
+    'timeout' => 10,
+    'smtp_keepalive' => true,
+    'smtp_auto_tls' => true,
     'SMTPOptions' => [
         'ssl' => [
             'verify_peer' => false,
             'verify_peer_name' => false,
-            'allow_self_signed' => true
-        ]
+            'allow_self_signed' => true,
         ],
-
-        'defaultSubject' => 'Neue Formularübermittlung',
-        'defaultRecipients' => ['mail@example.com'],
-        'defaultPreText' => 'Hallo,<br>vielen Dank für Ihre Nachricht.<br>Folgende Daten wurden in unserem System gespeichert:<p>',
-        'defaultPostText' => '</p> <br>Mit freundlichen Grüßen<br>Ihr Team',
-    
-// Optionale Server-URL, an den die Daten zusaetzlich als JSON gesendet werden
-'server_url' => '',
+    ],
+    'defaultSubject' => 'Neue Formularuebermittlung',
+    'defaultRecipients' => ['mail@example.com'],
+    'defaultPreText' => 'Hallo,<br>vielen Dank fuer Ihre Nachricht.<br>Folgende Daten wurden in unserem System gespeichert:<p>',
+    'defaultPostText' => '</p><br>Mit freundlichen Gruessen<br>Ihr Team',
+    'server_url' => '',
 ];
-?>

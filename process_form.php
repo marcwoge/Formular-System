@@ -96,56 +96,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $emailBody = buildEmailBody($emailPreText, $emailPostText, $postData, $hiddenFields);
     $plainTextBody = buildPlainTextBody($emailPreText, $emailPostText, $postData, $hiddenFields);
-
-    $mail = new PHPMailer(true);
-
-    try {
-        $mail->isSMTP();
-        $mail->Host = $mailConfig['host'];
-        $mail->SMTPAuth = $mailConfig['SMTPAuth'];
-        $mail->Username = $mailConfig['username'];
-        $mail->Password = $mailConfig['password'];
-        $mail->SMTPSecure = $mailConfig['encryption'];
-        $mail->Port = $mailConfig['port'];
-        $mail->CharSet = 'UTF-8';
-        $mail->SMTPOptions = $mailConfig['SMTPOptions'];
-
-        $mail->setFrom($mailConfig['from']);
-
-        foreach ($emailRecipients as $recipient) {
-            $recipient = trim((string) $recipient);
-            if ($recipient !== '') {
-                $mail->addAddress($recipient);
-            }
-        }
-
-        attachStaticFiles($mail, $postData);
-
-        if (file_exists($pdfPath)) {
-            $mail->addAttachment($pdfPath, basename($pdfPath));
-        }
-
-        $mail->isHTML(true);
-        $mail->Subject = $emailSubject;
-        $mail->Body = $emailBody;
-        $mail->AltBody = $plainTextBody;
-
-        $mail->send();
-        $mail->clearAddresses();
-
-        if ($userEmail !== '') {
-            $mail->addAddress($userEmail);
-            $mail->send();
-        }
-    } catch (Exception $e) {
-        clearSubmissionGuard($submissionFingerprint);
-        exit("E-Mail konnte nicht gesendet werden. Fehler: {$mail->ErrorInfo}");
-    }
-
-    dispatchServerCallback($mailConfig, $postData);
-
     storeSubmissionGuard($submissionFingerprint, 'success');
-    exit('success');
+    finishClientRequest('success');
+
+    dispatchSubmissionDelivery(
+        $mailConfig,
+        $postData,
+        $hiddenFields,
+        $emailRecipients,
+        $userEmail,
+        $emailSubject,
+        $emailBody,
+        $plainTextBody,
+        $pdfPath,
+        $timestamp,
+        $saveDir
+    );
+
+    exit;
 }
 
 echo 'Ungültige Anforderung.';
@@ -324,6 +292,126 @@ function dispatchServerCallback(array $mailConfig, array $postData): void
     curl_setopt($ch, CURLOPT_NOSIGNAL, true);
     curl_exec($ch);
     curl_close($ch);
+}
+
+function dispatchSubmissionDelivery(
+    array $mailConfig,
+    array $postData,
+    array $hiddenFields,
+    array $emailRecipients,
+    string $userEmail,
+    string $emailSubject,
+    string $emailBody,
+    string $plainTextBody,
+    string $pdfPath,
+    string $timestamp,
+    string $saveDir
+): void {
+    $logLines = [
+        '[' . date('c') . '] Zustellung gestartet.',
+    ];
+
+    try {
+        $mail = createConfiguredMailer($mailConfig);
+        $mail->setFrom($mailConfig['from']);
+
+        foreach ($emailRecipients as $recipient) {
+            $recipient = trim((string) $recipient);
+            if ($recipient !== '') {
+                $mail->addAddress($recipient);
+            }
+        }
+
+        attachStaticFiles($mail, $postData);
+
+        if (file_exists($pdfPath)) {
+            $mail->addAttachment($pdfPath, basename($pdfPath));
+        }
+
+        $mail->isHTML(true);
+        $mail->Subject = $emailSubject;
+        $mail->Body = $emailBody;
+        $mail->AltBody = $plainTextBody;
+        $mail->send();
+        $logLines[] = '[' . date('c') . '] Empfaengermail gesendet.';
+
+        $mail->clearAddresses();
+
+        if ($userEmail !== '') {
+            $mail->addAddress($userEmail);
+            $mail->send();
+            $logLines[] = '[' . date('c') . '] Benutzerkopie gesendet an ' . $userEmail . '.';
+        }
+
+        $mail->smtpClose();
+    } catch (Exception $e) {
+        $logLines[] = '[' . date('c') . '] Mailversand fehlgeschlagen: ' . $e->getMessage();
+    }
+
+    try {
+        dispatchServerCallback($mailConfig, $postData);
+        $logLines[] = '[' . date('c') . '] Server-Callback abgeschlossen.';
+    } catch (Throwable $throwable) {
+        $logLines[] = '[' . date('c') . '] Server-Callback fehlgeschlagen: ' . $throwable->getMessage();
+    }
+
+    writeSubmissionDispatchLog($saveDir, $timestamp, $logLines);
+}
+
+function createConfiguredMailer(array $mailConfig): PHPMailer
+{
+    $mail = new PHPMailer(true);
+    $mail->isSMTP();
+    $mail->Host = $mailConfig['host'];
+    $mail->SMTPAuth = $mailConfig['SMTPAuth'];
+    $mail->Username = $mailConfig['username'];
+    $mail->Password = $mailConfig['password'];
+    $mail->SMTPSecure = $mailConfig['encryption'];
+    $mail->Port = $mailConfig['port'];
+    $mail->CharSet = 'UTF-8';
+    $mail->SMTPOptions = $mailConfig['SMTPOptions'];
+    $mail->Timeout = (int) ($mailConfig['timeout'] ?? 10);
+    $mail->SMTPKeepAlive = (bool) ($mailConfig['smtp_keepalive'] ?? true);
+
+    if (array_key_exists('smtp_auto_tls', $mailConfig)) {
+        $mail->SMTPAutoTLS = (bool) $mailConfig['smtp_auto_tls'];
+    }
+
+    return $mail;
+}
+
+function finishClientRequest(string $payload): void
+{
+    ignore_user_abort(true);
+
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_write_close();
+    }
+
+    if (!headers_sent()) {
+        http_response_code(200);
+        header('Content-Type: text/plain; charset=UTF-8');
+        header('Content-Length: ' . strlen($payload));
+        header('Connection: close');
+    }
+
+    echo $payload;
+
+    while (ob_get_level() > 0) {
+        ob_end_flush();
+    }
+
+    flush();
+
+    if (function_exists('fastcgi_finish_request')) {
+        fastcgi_finish_request();
+    }
+}
+
+function writeSubmissionDispatchLog(string $saveDir, string $timestamp, array $lines): void
+{
+    $logPath = rtrim($saveDir, '/\\') . DIRECTORY_SEPARATOR . $timestamp . '_dispatch.log';
+    @file_put_contents($logPath, implode(PHP_EOL, $lines) . PHP_EOL);
 }
 
 function getServerCallbackUrl(array $mailConfig): string

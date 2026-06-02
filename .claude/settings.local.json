@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"D:\\\\Entwicklungsprojekte\\\\Formular-System\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs ls -lh)",
+      "Bash(xargs cat)"
+    ]
+  }
+}

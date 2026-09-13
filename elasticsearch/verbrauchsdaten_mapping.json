@@ -1,0 +1,132 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 1,
+    "index": {
+      "lifecycle": {
+        "name": "verbrauchsdaten-policy"
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+
+      "@timestamp": {
+        "type": "date",
+        "doc_values": true
+      },
+
+      "erfasst_am": {
+        "type": "date",
+        "doc_values": true
+      },
+
+      "periode_von": {
+        "type": "date",
+        "doc_values": true
+      },
+
+      "periode_bis": {
+        "type": "date",
+        "doc_values": true
+      },
+
+      "periode_tage": {
+        "type": "integer"
+      },
+
+      "standort": {
+        "type": "keyword"
+      },
+
+      "standort_bezeichnung": {
+        "type": "keyword"
+      },
+
+      "ressource": {
+        "type": "keyword"
+      },
+
+      "lieferant": {
+        "type": "keyword"
+      },
+
+      "einheit": {
+        "type": "keyword"
+      },
+
+      "zaehler_id": {
+        "type": "keyword"
+      },
+
+      "zaehlwerk": {
+        "type": "keyword"
+      },
+
+      "wandlerfaktor": {
+        "type": "double"
+      },
+
+      "verbrauch_roh": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "verbrauch_effektiv": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "verbrauch_pro_tag": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "verbrauch_pro_woche": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "verbrauch_pro_monat": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "co2_faktor_kg_pro_einheit": {
+        "type": "double"
+      },
+
+      "co2_gesamt_kg": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "co2_pro_tag_kg": {
+        "type": "double",
+        "doc_values": true
+      },
+
+      "korrektur": {
+        "type": "boolean"
+      },
+
+      "erfasst_von": {
+        "type": "keyword"
+      },
+
+      "erfasst_von_email": {
+        "type": "keyword"
+      },
+
+      "anmerkungen": {
+        "type": "text",
+        "analyzer": "german"
+      },
+
+      "formular_submission_id": {
+        "type": "keyword"
+      }
+
+    }
+  }
+}

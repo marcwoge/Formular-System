@@ -1,0 +1,177 @@
+{
+  "_comment_konzept": [
+    "Jedes Dokument enthält 'verbrauch_pro_tag' und 'co2_pro_tag_kg' als vorberechnete Tageswerte.",
+    "Damit lässt sich über beliebige Zeiträume aggregieren: Man summiert die Tageswerte",
+    "aller Dokumente, deren Abrechnungszeitraum (periode_von–periode_bis) in das Abfrageintervall fällt.",
+    "",
+    "Für exakte Tagesverteilung in Kibana: Dokument beim Indexieren in Tagesscheiben aufsplitten",
+    "(ein Dokument pro Tag, Wert = verbrauch_pro_tag). Dann funktionieren date_histogram-Aggregationen",
+    "direkt ohne Scripting. Alternativ: Scripted Aggregation (s. Beispiel 4 unten)."
+  ],
+
+  "beispiel_1_index_erstellen": {
+    "_comment": "Index anlegen mit dem Mapping aus verbrauchsdaten_mapping.json",
+    "method": "PUT",
+    "path": "/verbrauchsdaten",
+    "body": "{ ...Inhalt von verbrauchsdaten_mapping.json... }"
+  },
+
+  "beispiel_2_jahresverbrauch_nach_ressource": {
+    "_comment": "Jahresverbrauch 2025 gruppiert nach Ressource und Standort",
+    "method": "POST",
+    "path": "/verbrauchsdaten/_search",
+    "body": {
+      "size": 0,
+      "query": {
+        "range": {
+          "periode_von": {
+            "gte": "2025-01-01",
+            "lte": "2025-12-31"
+          }
+        }
+      },
+      "aggs": {
+        "nach_ressource": {
+          "terms": { "field": "ressource", "size": 20 },
+          "aggs": {
+            "nach_standort": {
+              "terms": { "field": "standort", "size": 20 },
+              "aggs": {
+                "verbrauch_summe": {
+                  "sum": { "field": "verbrauch_effektiv" }
+                },
+                "co2_summe_kg": {
+                  "sum": { "field": "co2_gesamt_kg" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "beispiel_3_monatlicher_verlauf": {
+    "_comment": [
+      "Monatlicher Verbrauch über ein Jahr – date_histogram auf periode_von.",
+      "Liefert korrekte Werte wenn pro Monat eine Abrechnung vorliegt.",
+      "Bei quartalsweisen Abrechnungen: verbrauch_pro_tag * 30.44 aus den Dokumenten nutzen."
+    ],
+    "method": "POST",
+    "path": "/verbrauchsdaten/_search",
+    "body": {
+      "size": 0,
+      "query": {
+        "bool": {
+          "filter": [
+            { "term": { "ressource": "Strom" } },
+            { "range": { "periode_von": { "gte": "2025-01-01", "lte": "2025-12-31" } } }
+          ]
+        }
+      },
+      "aggs": {
+        "nach_monat": {
+          "date_histogram": {
+            "field": "periode_von",
+            "calendar_interval": "month",
+            "format": "yyyy-MM"
+          },
+          "aggs": {
+            "verbrauch_gesamt": { "sum": { "field": "verbrauch_effektiv" } },
+            "co2_gesamt":       { "sum": { "field": "co2_gesamt_kg" } }
+          }
+        }
+      }
+    }
+  },
+
+  "beispiel_4_freies_intervall_mit_tageswerten": {
+    "_comment": [
+      "Freies Intervall: beliebige Zeitspanne abfragen, Verbrauch aus Tageswerten hochrechnen.",
+      "Strategie: Dokumente abrufen, deren Periode sich mit dem Abfrageintervall überschneidet,",
+      "dann verbrauch_pro_tag * (Überschneidungstage) summieren.",
+      "",
+      "Einfachste Näherung für Kibana ohne Scripting: Abfrage auf periode_von im Zielfenster",
+      "und Summe der verbrauch_pro_tag * periode_tage (= verbrauch_effektiv).",
+      "",
+      "Für korrekte Tagesverteilung wird empfohlen, beim Indexieren ein Dokument pro Tag",
+      "zu erstellen (Logstash split filter oder Custom Indexer)."
+    ],
+    "method": "POST",
+    "path": "/verbrauchsdaten/_search",
+    "body": {
+      "size": 0,
+      "query": {
+        "bool": {
+          "filter": [
+            { "range": { "periode_von": { "gte": "2025-03-01" } } },
+            { "range": { "periode_bis": { "lte": "2025-09-30" } } }
+          ]
+        }
+      },
+      "aggs": {
+        "nach_ressource": {
+          "terms": { "field": "ressource", "size": 10 },
+          "aggs": {
+            "verbrauch_summe": { "sum": { "field": "verbrauch_effektiv" } },
+            "tage_summe":      { "sum": { "field": "periode_tage" } },
+            "co2_summe_kg":    { "sum": { "field": "co2_gesamt_kg" } }
+          }
+        }
+      }
+    }
+  },
+
+  "beispiel_5_co2_vergleich_strom_nach_co2_faktor": {
+    "_comment": [
+      "Vergleich CO2-Intensität Strom nach Anbieterwechsel.",
+      "Gruppiert nach co2_faktor_kg_pro_einheit um verschiedene Tarifjahre zu unterscheiden."
+    ],
+    "method": "POST",
+    "path": "/verbrauchsdaten/_search",
+    "body": {
+      "size": 0,
+      "query": {
+        "term": { "ressource": "Strom" }
+      },
+      "aggs": {
+        "nach_co2_faktor": {
+          "terms": { "field": "co2_faktor_kg_pro_einheit", "size": 20 },
+          "aggs": {
+            "verbrauch_kwh": { "sum": { "field": "verbrauch_effektiv" } },
+            "co2_kg":        { "sum": { "field": "co2_gesamt_kg" } },
+            "zeitraum_von":  { "min": { "field": "periode_von" } },
+            "zeitraum_bis":  { "max": { "field": "periode_bis" } }
+          }
+        }
+      }
+    }
+  },
+
+  "beispiel_6_logstash_pipeline_tagesscheiben": {
+    "_comment": [
+      "Optionaler Ansatz: Logstash-Pipeline, die jede Einmeldung in N Tagesscheiben aufteilt.",
+      "Dann funktionieren date_histogram-Aggregationen in Kibana direkt über @timestamp.",
+      "Jede Tagesscheibe bekommt: verbrauch = verbrauch_pro_tag, co2_kg = co2_pro_tag_kg."
+    ],
+    "logstash_filter_snippet": [
+      "filter {",
+      "  ruby {",
+      "    code => '",
+      "      start = Date.parse(event.get(\"periode_von\"))",
+      "      stop  = Date.parse(event.get(\"periode_bis\"))",
+      "      events = []",
+      "      (start..stop).each do |day|",
+      "        e = event.clone",
+      "        e.set(\"@timestamp\", day.to_time)",
+      "        e.set(\"verbrauch\", event.get(\"verbrauch_pro_tag\"))",
+      "        e.set(\"co2_kg\",    event.get(\"co2_pro_tag_kg\"))",
+      "        events << e",
+      "      end",
+      "      return events",
+      "    '",
+      "  }",
+      "}"
+    ]
+  }
+}

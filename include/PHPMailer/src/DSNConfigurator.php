@@ -13,7 +13,7 @@
  * @copyright 2012 - 2023 Marcus Bointon
  * @copyright 2010 - 2012 Jim Jagielski
  * @copyright 2004 - 2009 Andy Prevost
- * @license   http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
+ * @license   https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html GNU Lesser General Public License
  * @note      This program is distributed in the hope that it will be useful - WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
  * FITNESS FOR A PARTICULAR PURPOSE.
@@ -22,7 +22,10 @@
 namespace PHPMailer\PHPMailer;
 
 /**
- * Configure PHPMailer with DSN string.
+ * Configure PHPMailer with a DSN string.
+ * Be aware that a DSN string can configure *all* PHPMailer properties,
+ * including those that have security consequences, so do not use
+ * user-provided DSN strings without strict validation of all parameters.
  *
  * @see https://en.wikipedia.org/wiki/Data_source_name
  *
@@ -80,9 +83,7 @@ class DSNConfigurator
         $config = $this->parseUrl($dsn);
 
         if (false === $config || !isset($config['scheme']) || !isset($config['host'])) {
-            throw new Exception(
-                sprintf('Malformed DSN: "%s".', $dsn)
-            );
+            throw new Exception('Malformed DSN');
         }
 
         if (isset($config['query'])) {
@@ -142,7 +143,7 @@ class DSNConfigurator
         $isSMTPS = 'smtps' === $config['scheme'];
 
         if ($isSMTPS) {
-            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            $mailer->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
         }
 
         $mailer->Host = $config['host'];

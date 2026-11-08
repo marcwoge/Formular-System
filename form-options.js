@@ -4,10 +4,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const output = document.getElementById("sliderValue");
 
     if (slider && output) { 
-        output.innerHTML = slider.value;
+        output.textContent = slider.value;
 
         slider.oninput = function() {
-            output.innerHTML = this.value;
+            output.textContent = this.value;
         }
     }
 });

@@ -439,6 +439,12 @@ Each submission also receives a unique `Meldungsnummer`. By default it is genera
 
 If `server_url` is configured in `config/mailconfig.php`, the submission is also forwarded as JSON to that endpoint. This callback is optional and should only be set when it is really needed.
 
+The callback payload is prepared for database ingestion (e.g. Apache NiFi `UpdateDatabaseTable` / `PutDatabaseRecord`):
+
+- Multi-select fields (`name="field[]"`) are sent as one comma-separated string instead of a JSON array, so no `ARRAY` column type is generated.
+- Field names that differ only in upper/lower case (e.g. `EMail` and `email`) are merged into one field, because database column names are case-insensitive.
+- The sender of a submission is taken from the user box (`current_windows_email`). The system no longer adds or prefills a separate `email` field, so form fields such as the e-mail address of a new employee keep their own value and the confirmation copy goes to the person who submitted the form.
+
 ## Windows User Prefill
 If the web server exposes the current Windows user via variables such as `REMOTE_USER`, `AUTH_USER`, `LOGON_USER`, `PHP_AUTH_USER` or similar, the system now:
 

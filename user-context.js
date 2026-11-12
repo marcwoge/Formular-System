@@ -151,7 +151,8 @@ function loadStoredUserContext() {
 function prefillCommonFields(form, context) {
     fillFirstEmptyField(form, ['name'], context.display_name || context.username);
     fillFirstEmptyField(form, ['username'], context.username || context.display_name);
-    fillFirstEmptyField(form, ['email'], context.email);
+    // Kein Vorbelegen von Formularfeldern "email": der Absender steht im Benutzerkasten
+    // (current_windows_email). Felder wie die E-Mail eines neuen Mitarbeiters bleiben leer.
 }
 
 function fillFirstEmptyField(form, candidateNames, value) {

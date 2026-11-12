@@ -67,12 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $postData['file_link'] = $fileUrl;
     }
 
-    if (empty($postData['email']) && !empty($postData['current_windows_email'])) {
-        $postData['email'] = $postData['current_windows_email'];
-    } elseif (empty($postData['email']) && !empty($userContext['email'])) {
-        $postData['email'] = $userContext['email'];
-    }
-
     $postData['formdatetime'] = round(microtime(true) * 1000);
 
     $pdfFilename = buildPdfFilename($timestamp, $postData);
@@ -91,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $emailRecipients = isset($postData['email_recipients']) ? explode(',', $postData['email_recipients']) : $defaultRecipients;
     $emailPreText = isset($postData['email_pretext']) ? $postData['email_pretext'] : $defaultPreText;
     $emailPostText = isset($postData['email_posttext']) ? $postData['email_posttext'] : $defaultPostText;
-    $userEmail = isset($postData['email']) ? trim((string) $postData['email']) : '';
+    $userEmail = resolveSenderEmail($postData, $userContext);
     $emailSubject = buildSubmissionSubject($emailSubject, $postData);
 
     $emailBody = buildEmailBody($emailPreText, $emailPostText, $postData, $hiddenFields);
@@ -266,6 +260,71 @@ function mergeUserContextValue(array &$postData, string $key, string $detectedVa
     }
 }
 
+/**
+ * Absender der Meldung: zuerst der Benutzerkasten (current_windows_email),
+ * dann der erkannte Windows-Benutzer, erst zuletzt ein Formularfeld "email".
+ * Formularfelder wie "Email" eines neuen Mitarbeiters werden so nicht mehr
+ * versehentlich als Absender verwendet.
+ */
+function resolveSenderEmail(array $postData, array $userContext): string
+{
+    $candidates = [
+        $postData['current_windows_email'] ?? '',
+        $userContext['email'] ?? '',
+        $postData['email'] ?? '',
+    ];
+
+    foreach ($candidates as $candidate) {
+        $candidate = trim((string) $candidate);
+        if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_EMAIL)) {
+            return $candidate;
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Bereitet die Daten fuer den Server-Callback (NiFi / Datenbank) auf:
+ * - Mehrfachauswahlen (Arrays) werden zu kommagetrennten Texten, damit kein
+ *   ARRAY-Spaltentyp entsteht, den MySQL nicht kennt.
+ * - Feldnamen, die sich nur in Gross-/Kleinschreibung unterscheiden
+ *   (z. B. "EMail" und "email"), werden zusammengefuehrt, weil Datenbank-
+ *   spalten nicht zwischen Gross- und Kleinschreibung unterscheiden.
+ */
+function buildServerCallbackPayload(array $postData): array
+{
+    $payload = [];
+    $keyByLowercase = [];
+
+    foreach ($postData as $key => $value) {
+        $key = (string) $key;
+        if (!is_scalar($value) && !is_array($value) && $value !== null) {
+            continue;
+        }
+
+        if (is_array($value)) {
+            $value = normalizeSubmittedValue($value);
+        } elseif (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        }
+
+        $lowercaseKey = strtolower($key);
+        if (!isset($keyByLowercase[$lowercaseKey])) {
+            $keyByLowercase[$lowercaseKey] = $key;
+            $payload[$key] = $value;
+            continue;
+        }
+
+        $existingKey = $keyByLowercase[$lowercaseKey];
+        if (trim((string) $payload[$existingKey]) === '' && trim((string) $value) !== '') {
+            $payload[$existingKey] = $value;
+        }
+    }
+
+    return $payload;
+}
+
 function dispatchServerCallback(array $mailConfig, array $postData): void
 {
     $url = getServerCallbackUrl($mailConfig);
@@ -273,7 +332,7 @@ function dispatchServerCallback(array $mailConfig, array $postData): void
         return;
     }
 
-    $payload = json_encode($postData, JSON_UNESCAPED_UNICODE);
+    $payload = json_encode(buildServerCallbackPayload($postData), JSON_UNESCAPED_UNICODE);
     if ($payload === false) {
         return;
     }
